@@ -229,42 +229,32 @@ function cardHTML(t) {
     const subs = t.subtasks || [];
     const doneSubs = subs.filter(s => s.done).length;
     const di = dueInfo(t.due_date);
-    let progress = '';
-    if (subs.length) {
-        const pct = Math.round((doneSubs / subs.length) * 100);
-        progress = `<div class="tm-progress-wrap">
-            <div class="tm-progress-bar"><div class="tm-progress-fill" style="width:${pct}%"></div></div>
-            <div class="tm-progress-text">${doneSubs}/${subs.length} steps · ${pct}%</div>
-          </div>`;
-    }
-    const urlHTML = t.url ? `<a class="tm-card-url" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        ${esc(t.url.replace(/^https?:\/\//, ''))}</a>` : '';
-    return `<div class="tm-card" draggable="true" data-id="${t.id}" style="--brand-color:${brandColor(t.brand)};--prio-color:${PRIORITY_COLORS[t.priority]}">
-        <div class="tm-card-top">
-            <span class="tm-brand-badge">${esc(t.brand)}</span>
-            <span class="tm-type-tag">${TYPE_LABELS[t.task_type] || 'Other'}</span>
-            <span class="tm-prio"><span class="tm-prio-dot"></span>${t.priority}</span>
+    const meta = [`<span class="tm-type-tag">${TYPE_LABELS[t.task_type] || 'Other'}</span>`];
+    if (subs.length) meta.push(`<span class="tm-meta-chip">${doneSubs}/${subs.length}</span>`);
+    if (di.label) meta.push(`<span class="tm-due ${di.cls}">${di.label}</span>`);
+    return `<div class="tm-card status-${t.status}" draggable="true" data-id="${t.id}" style="--brand-color:${brandColor(t.brand)};--prio-color:${PRIORITY_COLORS[t.priority]}">
+        <div class="tm-card-main">
+            <div class="tm-card-line1">
+                <span class="tm-prio-dot" title="${t.priority} priority"></span>
+                <span class="tm-card-title">${esc(t.title)}</span>
+            </div>
+            <div class="tm-card-meta">
+                <span class="tm-brand-badge">${esc(t.brand)}</span>
+                ${meta.join('')}
+            </div>
         </div>
-        <div class="tm-card-title">${esc(t.title)}</div>
-        ${t.details ? `<div class="tm-card-details">${esc(t.details)}</div>` : ''}
-        ${urlHTML}
-        ${progress}
-        <div class="tm-status-btns">
-            <button class="tm-status-btn ${t.status === 'todo' ? 'active' : ''}" data-status="todo" data-id="${t.id}">To Do</button>
-            <button class="tm-status-btn ${t.status === 'in_progress' ? 'active' : ''}" data-status="in_progress" data-id="${t.id}">In Progress</button>
-            <button class="tm-status-btn ${t.status === 'done' ? 'active' : ''}" data-status="done" data-id="${t.id}">Done</button>
-        </div>
-        <div class="tm-card-foot">
-            ${di.label ? `<span class="tm-due ${di.cls}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${di.label}</span>` : ''}
-            <span class="tm-card-actions">
-                <button class="tm-icon-btn" data-act="edit" title="Edit">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-                <button class="tm-icon-btn danger" data-act="del" title="Delete">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
-            </span>
+        <div class="tm-card-right">
+            <select class="tm-status-select status-${t.status}" data-id="${t.id}" title="Change status">
+                <option value="todo" ${t.status === 'todo' ? 'selected' : ''}>To Do</option>
+                <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                <option value="done" ${t.status === 'done' ? 'selected' : ''}>Done</option>
+            </select>
+            <button class="tm-icon-btn" data-act="edit" title="Edit">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="tm-icon-btn danger" data-act="del" title="Delete">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
         </div>
     </div>`;
 }
@@ -301,8 +291,11 @@ function bindCards() {
         const id = card.dataset.id;
         card.querySelector('[data-act="edit"]')?.addEventListener('click', e => { e.stopPropagation(); openModal(id); });
         card.querySelector('[data-act="del"]')?.addEventListener('click', e => { e.stopPropagation(); removeTask(id); });
-        card.querySelectorAll('.tm-status-btn').forEach(btn =>
-            btn.addEventListener('click', e => { e.stopPropagation(); quickStatus(id, btn.dataset.status); }));
+        const sel = card.querySelector('.tm-status-select');
+        if (sel) {
+            sel.addEventListener('click', e => e.stopPropagation());
+            sel.addEventListener('change', e => { e.stopPropagation(); quickStatus(id, sel.value); });
+        }
         card.addEventListener('click', () => openModal(id));
     });
 }
