@@ -10,5 +10,8 @@ register.reg
 memory/
 .claude/
 
+# Server-side secret (NVIDIA API key) — created on server only, never committed
+ai-config.php
+
 # Node (in case tooling is added later)
 node_modules/

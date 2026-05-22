@@ -124,15 +124,20 @@
             </select>
 
             <div class="tm-view-toggle">
-                <button id="viewBoard" class="active" title="Board view">
+                <button id="viewBoard" title="Board view">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="9" y="3" width="6" height="11"/><rect x="15" y="3" width="6" height="15"/></svg>
                     Board
                 </button>
-                <button id="viewList" title="List view">
+                <button id="viewList" class="active" title="List view">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                     List
                 </button>
             </div>
+
+            <button class="tm-btn tm-btn-ai" id="aiBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 14l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+                AI Assistant
+            </button>
 
             <button class="tm-btn tm-btn-primary" id="newTaskBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -236,8 +241,13 @@
                     </div>
                     <div class="tm-field">
                         <label for="fDue">Due date</label>
-                        <input type="date" class="tm-input" id="fDue">
+                        <input type="date" class="tm-input tm-date" id="fDue" placeholder="Pick a date">
                     </div>
+                </div>
+
+                <div class="tm-field">
+                    <label for="fAssigned">Assigned date (auto)</label>
+                    <input type="text" class="tm-input" id="fAssigned" disabled>
                 </div>
 
                 <div class="tm-field">
@@ -283,6 +293,24 @@
             <div id="viewBody"></div>
             <div class="tm-modal-foot">
                 <button type="button" class="tm-btn tm-btn-primary" id="viewEditBtn">Edit Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== AI assistant chat ===== -->
+    <div class="tm-modal-overlay" id="aiModal">
+        <div class="tm-modal tm-ai-modal">
+            <div class="tm-modal-head">
+                <h2>✨ AI Task Assistant</h2>
+                <button class="tm-modal-close" id="aiClose">&times;</button>
+            </div>
+            <div class="tm-ai-chat" id="aiChat"></div>
+            <div class="tm-ai-inputbar">
+                <button type="button" class="tm-ai-mic" id="aiMic" title="Speak your task">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                </button>
+                <input type="text" class="tm-ai-text" id="aiText" placeholder="Describe the task in your own words..." autocomplete="off">
+                <button type="button" class="tm-btn tm-btn-primary" id="aiSend">Send</button>
             </div>
         </div>
     </div>

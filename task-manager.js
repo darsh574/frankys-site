@@ -46,7 +46,7 @@ const BRAND_PALETTE = ['#e11d48', '#8b5cf6', '#0ea5e9', '#22c55e', '#f59e0b',
 // ---- State ----
 let tasks = [];
 let brands = [...DEFAULT_BRANDS];
-let currentView = 'board';
+let currentView = 'list';
 let editingSubtasks = [];
 let sbClient = null;
 const useSupabase = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
@@ -169,6 +169,7 @@ const $ = id => document.getElementById(id);
 function uid() { return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7); }
 function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
 function brandColor(name) { const b = brands.find(x => x.name === name); return b ? b.color : '#555'; }
+function fmtDate(iso) { try { return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return ''; } }
 
 function dueInfo(due) {
     if (!due) return { cls: '', label: '' };
@@ -423,6 +424,7 @@ function openModal(id) {
         $('fUrl').value = t.url || '';
         $('fDetails').value = t.details || '';
         $('fRemarks').value = t.remarks || '';
+        $('fAssigned').value = fmtDate(t.created_at || new Date().toISOString());
         editingSubtasks = (t.subtasks || []).map(s => ({ ...s }));
         $('deleteTaskBtn').style.display = '';
     } else {
@@ -432,6 +434,7 @@ function openModal(id) {
         $('fBrand').value = brands[0] ? brands[0].name : '';
         $('fPriority').value = 'medium';
         $('fStatus').value = 'todo';
+        $('fAssigned').value = fmtDate(new Date().toISOString());
         editingSubtasks = [];
         $('deleteTaskBtn').style.display = 'none';
     }
@@ -478,6 +481,134 @@ function openView(id) {
     $('viewModal').classList.add('active');
 }
 function closeView() { $('viewModal').classList.remove('active'); }
+
+// ==========================================================================
+// AI ASSISTANT (chat -> task), via the server-side ai.php proxy
+// ==========================================================================
+let aiMessages = [];
+let aiBusy = false;
+let aiRecognition = null;
+
+function aiSystemPrompt() {
+    const today = new Date().toISOString().slice(0, 10);
+    const brandList = brands.map(b => b.name).join(', ');
+    return `You are a task-intake assistant for a website-management task manager. The user (Darshan) handles website changes, maintenance and technical SEO across several brands.
+Today's date is ${today}.
+Available brands: ${brandList}.
+Task types (use the value in quotes): "website_change", "maintenance", "seo_fix" (technical SEO), "bug", "content", "other".
+Priorities: "low", "medium", "high", "urgent".
+
+The user describes a task in plain language. Ask SHORT clarifying questions only when essential info is missing (which brand/website, what exactly to do, priority, and a due date if relevant). Ask at most two questions at a time and keep replies brief and friendly.
+
+When you have enough information, reply with one short confirmation sentence, then a single block in EXACTLY this format with nothing after it:
+<task>
+{"title":"...","brand":"<one of the brands above>","task_type":"<one value>","priority":"<one value>","due_date":"YYYY-MM-DD or null","details":"...","remarks":null}
+</task>
+Rules: "brand" must be one of the available brands (closest match). Output the <task> block only once and only when confident; otherwise keep asking.`;
+}
+
+function aiDisplay(content) {
+    const txt = content.replace(/<task>[\s\S]*?<\/task>/g, '').trim();
+    return txt || '✓ Task prepared below.';
+}
+function renderAIChat(typing) {
+    const box = $('aiChat');
+    box.innerHTML = aiMessages.filter(m => m.role !== 'system').map(m =>
+        `<div class="tm-ai-msg ${m.role === 'user' ? 'user' : 'bot'}">${esc(m.role === 'user' ? m.content : aiDisplay(m.content))}</div>`
+    ).join('') + (typing ? `<div class="tm-ai-msg bot typing">thinking…</div>` : '');
+    box.scrollTop = box.scrollHeight;
+}
+function openAI() {
+    aiMessages = [
+        { role: 'system', content: aiSystemPrompt() },
+        { role: 'assistant', content: 'Hi! Tell me what needs doing — for example “fix the broken contact form on Creed” — and I’ll ask anything I need, then create the task.' }
+    ];
+    renderAIChat();
+    $('aiModal').classList.add('active');
+    setTimeout(() => $('aiText').focus(), 100);
+}
+function closeAI() { $('aiModal').classList.remove('active'); stopMic(); }
+
+async function sendAI(text) {
+    text = (text || $('aiText').value).trim();
+    if (!text || aiBusy) return;
+    $('aiText').value = '';
+    aiMessages.push({ role: 'user', content: text });
+    renderAIChat(true);
+    aiBusy = true;
+    try {
+        const res = await fetch('ai.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: aiMessages })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.error) throw new Error(data.error || ('HTTP ' + res.status));
+        const reply = data.choices && data.choices[0] && data.choices[0].message
+            ? data.choices[0].message.content : '';
+        aiMessages.push({ role: 'assistant', content: reply || '(no response)' });
+        renderAIChat();
+        maybeCreateFromReply(reply);
+    } catch (e) {
+        aiMessages.push({ role: 'assistant', content: '⚠️ ' + (e.message || 'AI request failed') + '\n(The assistant only works on the live site where ai.php runs.)' });
+        renderAIChat();
+    } finally {
+        aiBusy = false;
+    }
+}
+
+function maybeCreateFromReply(reply) {
+    const m = reply.match(/<task>\s*([\s\S]*?)\s*<\/task>/);
+    if (!m) return;
+    let d;
+    try { d = JSON.parse(m[1]); } catch { return; }
+    const box = $('aiChat');
+    const prev = document.createElement('div');
+    prev.className = 'tm-ai-card-preview';
+    const due = d.due_date && d.due_date !== 'null' ? ' · due ' + esc(d.due_date) : '';
+    prev.innerHTML = `<b>${esc(d.title || 'Task')}</b><br>${esc(d.brand || '')} · ${esc(TYPE_LABELS[d.task_type] || d.task_type || '')} · ${esc(d.priority || '')}${due}<br><span style="opacity:.8">Opening the editor so you can review &amp; save…</span>`;
+    box.appendChild(prev);
+    box.scrollTop = box.scrollHeight;
+    setTimeout(() => { closeAI(); prefillFromAI(d); }, 1100);
+}
+
+function prefillFromAI(d) {
+    openModal();
+    if (d.title) $('fTitle').value = d.title;
+    if (d.brand) {
+        const match = brands.find(b => b.name.toLowerCase() === String(d.brand).toLowerCase());
+        if (match) $('fBrand').value = match.name;
+    }
+    if (d.task_type && TYPE_LABELS[d.task_type]) $('fType').value = d.task_type;
+    if (['low', 'medium', 'high', 'urgent'].includes(d.priority)) $('fPriority').value = d.priority;
+    if (d.due_date && /^\d{4}-\d{2}-\d{2}$/.test(d.due_date)) $('fDue').value = d.due_date;
+    if (d.details) $('fDetails').value = d.details;
+    if (d.remarks) $('fRemarks').value = d.remarks;
+    toast('Review the task and hit Save.', 'success');
+}
+
+// ----- Mic / speech-to-text for the assistant -----
+function initMic() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { const b = $('aiMic'); if (b) b.style.display = 'none'; return; }
+    aiRecognition = new SR();
+    aiRecognition.lang = 'en-IN';
+    aiRecognition.interimResults = false;
+    aiRecognition.maxAlternatives = 1;
+    aiRecognition.onresult = e => {
+        const t = e.results[0][0].transcript;
+        $('aiMic').classList.remove('listening');
+        sendAI(t);
+    };
+    aiRecognition.onend = () => $('aiMic').classList.remove('listening');
+    aiRecognition.onerror = () => $('aiMic').classList.remove('listening');
+}
+function toggleMic() {
+    if (!aiRecognition) return;
+    if ($('aiMic').classList.contains('listening')) { stopMic(); return; }
+    try { aiRecognition.start(); $('aiMic').classList.add('listening'); } catch (_) {}
+}
+function stopMic() { if (aiRecognition) { try { aiRecognition.stop(); } catch (_) {} } const b = $('aiMic'); if (b) b.classList.remove('listening'); }
 
 async function saveTask(e) {
     e.preventDefault();
@@ -585,11 +716,25 @@ function bindEvents() {
     $('taskModal').addEventListener('click', e => { if (e.target === $('taskModal')) closeModal(); });
     $('viewClose').addEventListener('click', closeView);
     $('viewModal').addEventListener('click', e => { if (e.target === $('viewModal')) closeView(); });
+    $('aiBtn').addEventListener('click', openAI);
+    $('aiClose').addEventListener('click', closeAI);
+    $('aiModal').addEventListener('click', e => { if (e.target === $('aiModal')) closeAI(); });
+    $('aiSend').addEventListener('click', () => sendAI());
+    $('aiText').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendAI(); } });
+    $('aiMic').addEventListener('click', toggleMic);
+    initMic();
     $('taskForm').addEventListener('submit', saveTask);
     $('deleteTaskBtn').addEventListener('click', () => { const id = $('taskId').value; if (id) { closeModal(); removeTask(id); } });
     $('addBrandBtn').addEventListener('click', addBrand);
     $('addSubtaskBtn').addEventListener('click', addSubtask);
     $('subtaskInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSubtask(); } });
+
+    // Due date = calendar only (open picker on click/focus, block manual typing)
+    const due = $('fDue');
+    const openPicker = () => { try { due.showPicker(); } catch (_) {} };
+    due.addEventListener('focus', openPicker);
+    due.addEventListener('click', openPicker);
+    due.addEventListener('keydown', e => e.preventDefault());
 
     ['searchInput', 'filterBrand', 'filterType', 'filterPriority', 'sortBy'].forEach(idv =>
         $(idv).addEventListener('input', render));
@@ -601,7 +746,7 @@ function bindEvents() {
     $('importBtn').addEventListener('click', () => $('importFile').click());
     $('importFile').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeView(); } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeView(); closeAI(); } });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
