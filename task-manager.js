@@ -5,8 +5,8 @@
    ========================================================================== */
 
 // ---- 1. SUPABASE CONFIG (leave blank to use this device's local storage) ----
-const SUPABASE_URL = '';      // e.g. https://abcdxyz.supabase.co
-const SUPABASE_ANON_KEY = ''; // the long "anon public" key
+const SUPABASE_URL = 'https://ifcurfhhzzpdvxuyobwo.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_lhiOaS0ToPQA4s8P3YS0qg_nh4G6Jmc'; // publishable key (safe for browser)
 
 // ---------------------------------------------------------------------------
 
