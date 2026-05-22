@@ -136,17 +136,20 @@ async function refreshFromCloud() {
     render();
 }
 
+// Columns that may not exist yet in older Supabase tables.
+const OPTIONAL_COLS = ['completed_at', 'remarks'];
 async function persistTask(task, isNew) {
     if (!sbClient) { lsSaveTasks(); return; }
     const run = payload => isNew
         ? sbClient.from('tasks').insert(payload)
         : sbClient.from('tasks').update(payload).eq('id', task.id);
     let { error } = await run(task);
-    if (error && /completed_at/i.test(error.message || '')) {
-        // Column not added yet — save without it (auto-delete stays off).
-        const { completed_at, ...rest } = task;
+    if (error && /(column|schema cache|does not exist)/i.test(error.message || '')) {
+        // A newer column isn't in the table yet — save without the optional ones.
+        const rest = { ...task };
+        OPTIONAL_COLS.forEach(c => delete rest[c]);
         ({ error } = await run(rest));
-        if (!error) toast('Saved. Add the completed_at column to enable auto-delete.', 'error');
+        if (!error) toast('Saved. Run the SQL to add the completed_at & remarks columns.', 'error');
     }
     if (error) { console.error('Supabase write failed', error); toast('Could not save: ' + error.message, 'error'); }
 }
@@ -419,6 +422,7 @@ function openModal(id) {
         $('fDue').value = t.due_date || '';
         $('fUrl').value = t.url || '';
         $('fDetails').value = t.details || '';
+        $('fRemarks').value = t.remarks || '';
         editingSubtasks = (t.subtasks || []).map(s => ({ ...s }));
         $('deleteTaskBtn').style.display = '';
     } else {
@@ -461,6 +465,7 @@ function openView(id) {
 
     let html = `<div class="tm-view-rows">${rows.join('')}</div>`;
     if (t.details) html += `<div class="tm-view-section"><div class="tm-view-label">Additional information</div><div class="tm-view-details">${esc(t.details)}</div></div>`;
+    if (t.remarks) html += `<div class="tm-view-section"><div class="tm-view-label">Remarks</div><div class="tm-view-details">${esc(t.remarks)}</div></div>`;
     if (subs.length) {
         const done = subs.filter(s => s.done).length;
         const items = subs.map(s => `<div class="tm-view-sub ${s.done ? 'done' : ''}">${s.done ? '✓' : '○'} ${esc(s.text)}</div>`).join('');
@@ -486,6 +491,7 @@ async function saveTask(e) {
         due_date: $('fDue').value || null,
         url: $('fUrl').value.trim() || null,
         details: $('fDetails').value.trim() || null,
+        remarks: $('fRemarks').value.trim() || null,
         subtasks: editingSubtasks
     };
     if (!data.title) { toast('Task needs a title.', 'error'); return; }

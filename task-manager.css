@@ -467,6 +467,7 @@
     max-width: 540px;
     max-height: 90vh;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 28px;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
     transform: translateY(20px) scale(0.97);
@@ -628,11 +629,15 @@
     border-radius: 12px;
     padding: 12px 14px;
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 .tm-view-sub {
     font-size: 14px;
     color: #ddd;
     padding: 5px 2px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 .tm-view-sub.done { color: #6b7280; text-decoration: line-through; }
 
