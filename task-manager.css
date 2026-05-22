@@ -56,17 +56,20 @@
 .tm-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 28px;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .tm-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border-radius: 16px;
-    padding: 18px 20px;
+    border-radius: 10px;
+    padding: 9px 14px;
     transition: var(--transition-smooth);
     position: relative;
     overflow: hidden;
@@ -81,13 +84,13 @@
 }
 
 .tm-stat:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     background: var(--glass-hover);
     border-color: rgba(255, 255, 255, 0.15);
 }
 
 .tm-stat-num {
-    font-size: 30px;
+    font-size: 20px;
     font-weight: 700;
     font-family: 'DM Sans', sans-serif;
     color: #fff;
@@ -95,11 +98,10 @@
 }
 
 .tm-stat-label {
-    font-size: 12px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     color: rgba(255, 255, 255, 0.45);
-    margin-top: 8px;
 }
 
 /* ----- Toolbar ----- */
@@ -407,6 +409,31 @@
     color: rgba(255, 255, 255, 0.45);
     margin-top: 5px;
 }
+
+/* quick status buttons */
+.tm-status-btns {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0 2px;
+}
+.tm-status-btn {
+    flex: 1;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    padding: 5px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: var(--transition-smooth);
+    white-space: nowrap;
+}
+.tm-status-btn:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.tm-status-btn[data-status="todo"].active { background: rgba(59, 130, 246, 0.22); color: #93c5fd; border-color: rgba(59, 130, 246, 0.5); }
+.tm-status-btn[data-status="in_progress"].active { background: rgba(245, 158, 11, 0.22); color: #fcd34d; border-color: rgba(245, 158, 11, 0.5); }
+.tm-status-btn[data-status="done"].active { background: rgba(34, 197, 94, 0.22); color: #86efac; border-color: rgba(34, 197, 94, 0.5); }
 
 .tm-card-foot {
     display: flex;

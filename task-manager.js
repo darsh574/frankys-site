@@ -24,13 +24,21 @@ const PRIORITY_COLORS = {
 };
 
 const DEFAULT_BRANDS = [
-    { name: 'Tupperware', color: '#e11d48' },
-    { name: 'Mind Nutrition', color: '#8b5cf6' },
-    { name: 'TOUJOURS', color: '#0ea5e9' },
-    { name: 'NIF Kondhwa', color: '#22c55e' },
+    { name: 'Nif Kondhwa', color: '#22c55e' },
     { name: 'Creed', color: '#f59e0b' },
-    { name: 'Hovers', color: '#06b6d4' }
+    { name: 'Hovers', color: '#06b6d4' },
+    { name: 'Tupperware India', color: '#e11d48' },
+    { name: 'Tupperware Malaysia', color: '#ec4899' },
+    { name: 'Total Comfort', color: '#0ea5e9' },
+    { name: 'Ease Living', color: '#14b8a6' },
+    { name: 'Mind Nutrition', color: '#8b5cf6' }
 ];
+
+// Old auto-seeded brands that are no longer wanted (cleaned up on load).
+const RETIRED_BRANDS = ['Tupperware', 'TOUJOURS'];
+
+// Days a task stays after being marked Done before it auto-deletes.
+const AUTO_DELETE_DAYS = 2;
 
 const BRAND_PALETTE = ['#e11d48', '#8b5cf6', '#0ea5e9', '#22c55e', '#f59e0b',
     '#06b6d4', '#ec4899', '#14b8a6', '#a855f7', '#ef4444', '#3b82f6', '#84cc16'];
@@ -69,7 +77,9 @@ async function storeInit() {
             ]);
             brands = (b && b.length) ? b : [...DEFAULT_BRANDS];
             if (!b || !b.length) { for (const br of brands) await sbClient.from('brands').insert(br); }
+            await reconcileBrands();
             tasks = t || [];
+            await purgeExpired();
             setConn(true);
             // live sync across devices
             sbClient.channel('tm-tasks')
@@ -82,7 +92,41 @@ async function storeInit() {
         }
     }
     lsLoad();
+    purgeExpiredLocal();
     setConn(false);
+}
+
+// Ensure the desired default brands exist and remove retired ones (idempotent).
+async function reconcileBrands() {
+    const have = new Set(brands.map(b => b.name.toLowerCase()));
+    for (const def of DEFAULT_BRANDS) {
+        if (!have.has(def.name.toLowerCase())) {
+            await sbClient.from('brands').insert(def);
+            brands.push(def);
+        }
+    }
+    for (const name of RETIRED_BRANDS) {
+        if (have.has(name.toLowerCase())) {
+            await sbClient.from('brands').delete().ilike('name', name);
+            brands = brands.filter(b => b.name.toLowerCase() !== name.toLowerCase());
+        }
+    }
+}
+
+// Delete tasks that have been Done for more than AUTO_DELETE_DAYS (cloud).
+async function purgeExpired() {
+    const cutoff = Date.now() - AUTO_DELETE_DAYS * 86400000;
+    const expired = tasks.filter(t => t.status === 'done' && t.completed_at && new Date(t.completed_at).getTime() < cutoff);
+    for (const t of expired) await sbClient.from('tasks').delete().eq('id', t.id);
+    if (expired.length) tasks = tasks.filter(t => !expired.includes(t));
+}
+
+// Same purge for local-storage mode.
+function purgeExpiredLocal() {
+    const cutoff = Date.now() - AUTO_DELETE_DAYS * 86400000;
+    const before = tasks.length;
+    tasks = tasks.filter(t => !(t.status === 'done' && t.completed_at && new Date(t.completed_at).getTime() < cutoff));
+    if (tasks.length !== before) lsSaveTasks();
 }
 
 async function refreshFromCloud() {
@@ -93,10 +137,18 @@ async function refreshFromCloud() {
 }
 
 async function persistTask(task, isNew) {
-    if (sbClient) {
-        if (isNew) await sbClient.from('tasks').insert(task);
-        else await sbClient.from('tasks').update(task).eq('id', task.id);
-    } else { lsSaveTasks(); }
+    if (!sbClient) { lsSaveTasks(); return; }
+    const run = payload => isNew
+        ? sbClient.from('tasks').insert(payload)
+        : sbClient.from('tasks').update(payload).eq('id', task.id);
+    let { error } = await run(task);
+    if (error && /completed_at/i.test(error.message || '')) {
+        // Column not added yet — save without it (auto-delete stays off).
+        const { completed_at, ...rest } = task;
+        ({ error } = await run(rest));
+        if (!error) toast('Saved. Add the completed_at column to enable auto-delete.', 'error');
+    }
+    if (error) { console.error('Supabase write failed', error); toast('Could not save: ' + error.message, 'error'); }
 }
 async function deleteTaskStore(id) {
     if (sbClient) await sbClient.from('tasks').delete().eq('id', id);
@@ -198,6 +250,11 @@ function cardHTML(t) {
         ${t.details ? `<div class="tm-card-details">${esc(t.details)}</div>` : ''}
         ${urlHTML}
         ${progress}
+        <div class="tm-status-btns">
+            <button class="tm-status-btn ${t.status === 'todo' ? 'active' : ''}" data-status="todo" data-id="${t.id}">To Do</button>
+            <button class="tm-status-btn ${t.status === 'in_progress' ? 'active' : ''}" data-status="in_progress" data-id="${t.id}">In Progress</button>
+            <button class="tm-status-btn ${t.status === 'done' ? 'active' : ''}" data-status="done" data-id="${t.id}">Done</button>
+        </div>
         <div class="tm-card-foot">
             ${di.label ? `<span class="tm-due ${di.cls}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${di.label}</span>` : ''}
             <span class="tm-card-actions">
@@ -244,8 +301,27 @@ function bindCards() {
         const id = card.dataset.id;
         card.querySelector('[data-act="edit"]')?.addEventListener('click', e => { e.stopPropagation(); openModal(id); });
         card.querySelector('[data-act="del"]')?.addEventListener('click', e => { e.stopPropagation(); removeTask(id); });
+        card.querySelectorAll('.tm-status-btn').forEach(btn =>
+            btn.addEventListener('click', e => { e.stopPropagation(); quickStatus(id, btn.dataset.status); }));
         card.addEventListener('click', () => openModal(id));
     });
+}
+
+// Set status + manage the completed_at timestamp used for auto-deletion.
+function applyStatus(task, status) {
+    task.status = status;
+    task.completed_at = status === 'done' ? new Date().toISOString() : null;
+}
+
+async function quickStatus(id, status) {
+    const t = tasks.find(x => x.id === id);
+    if (!t || t.status === status) return;
+    applyStatus(t, status);
+    await persistTask(t, false);
+    if (!sbClient) lsSaveTasks();
+    render();
+    const label = status === 'in_progress' ? 'In Progress' : status === 'done' ? 'Done' : 'To Do';
+    toast(`Marked “${t.title}” as ${label}.`, 'success');
 }
 
 // ==========================================================================
@@ -266,8 +342,9 @@ function bindDnD() {
             const status = col.dataset.status;
             const t = tasks.find(x => x.id === dragId);
             if (t && t.status !== status) {
-                t.status = status;
+                applyStatus(t, status);
                 await persistTask(t, false);
+                if (!sbClient) lsSaveTasks();
                 render();
                 toast(`Moved to ${status.replace('_', ' ')}`, 'success');
             }
@@ -378,6 +455,11 @@ async function saveTask(e) {
         subtasks: editingSubtasks
     };
     if (!data.title) { toast('Task needs a title.', 'error'); return; }
+
+    const existing = id ? tasks.find(x => x.id === id) : null;
+    data.completed_at = data.status === 'done'
+        ? (existing && existing.completed_at ? existing.completed_at : new Date().toISOString())
+        : null;
 
     if (id) {
         const t = tasks.find(x => x.id === id);
