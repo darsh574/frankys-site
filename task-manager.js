@@ -40,7 +40,7 @@ let tasks = [];
 let brands = [...DEFAULT_BRANDS];
 let currentView = 'board';
 let editingSubtasks = [];
-let supabase = null;
+let sbClient = null;
 const useSupabase = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
 
 // ==========================================================================
@@ -61,18 +61,18 @@ function lsSaveBrands() { try { localStorage.setItem(LS_BRANDS, JSON.stringify(b
 
 async function storeInit() {
     if (useSupabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         try {
             const [{ data: b }, { data: t }] = await Promise.all([
-                supabase.from('brands').select('*').order('name'),
-                supabase.from('tasks').select('*').order('created_at', { ascending: false })
+                sbClient.from('brands').select('*').order('name'),
+                sbClient.from('tasks').select('*').order('created_at', { ascending: false })
             ]);
             brands = (b && b.length) ? b : [...DEFAULT_BRANDS];
-            if (!b || !b.length) { for (const br of brands) await supabase.from('brands').insert(br); }
+            if (!b || !b.length) { for (const br of brands) await sbClient.from('brands').insert(br); }
             tasks = t || [];
             setConn(true);
             // live sync across devices
-            supabase.channel('tm-tasks')
+            sbClient.channel('tm-tasks')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, refreshFromCloud)
                 .subscribe();
             return;
@@ -86,24 +86,24 @@ async function storeInit() {
 }
 
 async function refreshFromCloud() {
-    if (!supabase) return;
-    const { data } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+    if (!sbClient) return;
+    const { data } = await sbClient.from('tasks').select('*').order('created_at', { ascending: false });
     tasks = data || [];
     render();
 }
 
 async function persistTask(task, isNew) {
-    if (supabase) {
-        if (isNew) await supabase.from('tasks').insert(task);
-        else await supabase.from('tasks').update(task).eq('id', task.id);
+    if (sbClient) {
+        if (isNew) await sbClient.from('tasks').insert(task);
+        else await sbClient.from('tasks').update(task).eq('id', task.id);
     } else { lsSaveTasks(); }
 }
 async function deleteTaskStore(id) {
-    if (supabase) await supabase.from('tasks').delete().eq('id', id);
+    if (sbClient) await sbClient.from('tasks').delete().eq('id', id);
     else lsSaveTasks();
 }
 async function persistBrand(brand) {
-    if (supabase) await supabase.from('brands').insert(brand);
+    if (sbClient) await sbClient.from('brands').insert(brand);
     else lsSaveBrands();
 }
 
@@ -297,7 +297,7 @@ async function addBrand() {
     const brand = { name: clean, color: BRAND_PALETTE[brands.length % BRAND_PALETTE.length] };
     brands.push(brand);
     await persistBrand(brand);
-    if (!supabase) lsSaveBrands();
+    if (!sbClient) lsSaveBrands();
     renderBrandFilter(); renderBrandSelect();
     $('fBrand').value = clean;
     toast(`Added brand “${clean}”`, 'success');
@@ -384,7 +384,7 @@ async function saveTask(e) {
         Object.assign(t, data);
         await persistTask(t, false);
         toast('Task updated.', 'success');
-    } else if (supabase) {
+    } else if (sbClient) {
         // Let Postgres generate id + created_at, then reload from cloud.
         await persistTask(data, true);
         await refreshFromCloud();
@@ -395,7 +395,7 @@ async function saveTask(e) {
         tasks.unshift({ id: uid(), created_at: new Date().toISOString(), ...data });
         toast('Task created.', 'success');
     }
-    if (!supabase) lsSaveTasks();
+    if (!sbClient) lsSaveTasks();
     closeModal();
     render();
 }
@@ -404,7 +404,7 @@ async function removeTask(id) {
     if (!confirm('Delete this task?')) return;
     tasks = tasks.filter(t => t.id !== id);
     await deleteTaskStore(id);
-    if (!supabase) lsSaveTasks();
+    if (!sbClient) lsSaveTasks();
     render();
     toast('Task deleted.', 'success');
 }
@@ -428,7 +428,7 @@ function importData(file) {
             const data = JSON.parse(reader.result);
             if (Array.isArray(data.tasks)) tasks = data.tasks;
             if (Array.isArray(data.brands) && data.brands.length) brands = data.brands;
-            if (!supabase) { lsSaveTasks(); lsSaveBrands(); }
+            if (!sbClient) { lsSaveTasks(); lsSaveBrands(); }
             render();
             toast('Backup imported.', 'success');
         } catch { toast('That file could not be read.', 'error'); }
