@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Tips — Darshan's Workspace</title>
+    <meta name="description" content="Master Claude AI with these expert tips — projects, prompting, model selection, integrations, and best practices.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="src/favicon.svg">
+    <style>
+        /* ========================================
+           CLAUDE TIPS PAGE — AWARD-WINNING DESIGN
+           ======================================== */
+
+        :root {
+            --claude-amber: #d97706;
+            --claude-amber-light: #fbbf24;
+            --claude-amber-glow: rgba(217, 119, 6, 0.25);
+            --corrected-amber: #f59e0b;
+            --new-green: #10b981;
+            --new-green-glow: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Page layout */
+        .tips-page {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            padding: 110px 20px 80px;
+            min-height: 100vh;
+        }
+
+        /* ── Hero Header ── */
+        .tips-hero {
+            text-align: center;
+            max-width: 720px;
+            margin: 0 auto 72px;
+            animation: heroFadeIn 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        @keyframes heroFadeIn {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .tips-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--claude-amber-light);
+            background: rgba(217, 119, 6, 0.12);
+            border: 1px solid rgba(217, 119, 6, 0.3);
+            border-radius: 9999px;
+            padding: 6px 14px;
+            margin-bottom: 24px;
+        }
+
+        .tips-eyebrow-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--claude-amber-light);
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.5; transform: scale(0.7); }
+        }
+
+        .tips-title {
+            font-size: clamp(38px, 6vw, 68px);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #fff 0%, #f5d086 40%, var(--claude-amber) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .tips-subtitle {
+            font-size: 17px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto 32px;
+        }
+
+        /* Section Nav Pills */
+        .tips-nav {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tips-nav-pill {
+            padding: 7px 16px;
+            border-radius: 9999px;
+            font-size: 12.5px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.55);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+        }
+
+        .tips-nav-pill:hover,
+        .tips-nav-pill.active {
+            background: var(--claude-amber-glow);
+            border-color: rgba(217, 119, 6, 0.5);
+            color: var(--claude-amber-light);
+            transform: translateY(-2px);
+        }
+
+        /* ── Section ── */
+        .tips-section {
+            max-width: 1100px;
+            margin: 0 auto 80px;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .tips-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .section-number {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .section-number.amber { background: rgba(217,119,6,0.15); color: var(--claude-amber-light); border: 1px solid rgba(217,119,6,0.3); }
+        .section-number.blue  { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+        .section-number.purple{ background: rgba(139,92,246,0.15); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); }
+        .section-number.teal  { background: rgba(20,184,166,0.15); color: #5eead4; border: 1px solid rgba(20,184,166,0.3); }
+        .section-number.gold  { background: rgba(245,158,11,0.15); color: #fde68a; border: 1px solid rgba(245,158,11,0.3); }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.35);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        /* Horizontal dot separator */
+        .section-sep {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(255,255,255,0.08), transparent);
+        }
+
+        /* ── Tips Grid ── */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .tips-grid.last-section {
+            grid-template-columns: 1fr;
+        }
+
+        /* ── Tip Card ── */
+        .tip-card {
+            background: rgba(14, 14, 14, 0.7);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 22px 24px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            animation: cardSlideIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        @keyframes cardSlideIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .tip-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .tip-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .tip-card:hover::before { opacity: 1; }
+
+        /* Card variants by accent */
+        .tip-card.accent-amber::before  { background: radial-gradient(circle at 30% 0%, rgba(217,119,6,0.08) 0%, transparent 70%); }
+        .tip-card.accent-blue::before   { background: radial-gradient(circle at 30% 0%, rgba(59,130,246,0.08) 0%, transparent 70%); }
+        .tip-card.accent-purple::before { background: radial-gradient(circle at 30% 0%, rgba(139,92,246,0.08) 0%, transparent 70%); }
+        .tip-card.accent-teal::before   { background: radial-gradient(circle at 30% 0%, rgba(20,184,166,0.08) 0%, transparent 70%); }
+        .tip-card.accent-green::before  { background: radial-gradient(circle at 30% 0%, rgba(16,185,129,0.08) 0%, transparent 70%); }
+
+        .tip-card.accent-amber:hover  { box-shadow: 0 12px 40px rgba(217,119,6,0.12); border-color: rgba(217,119,6,0.2); }
+        .tip-card.accent-blue:hover   { box-shadow: 0 12px 40px rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.2); }
+        .tip-card.accent-purple:hover { box-shadow: 0 12px 40px rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.2); }
+        .tip-card.accent-teal:hover   { box-shadow: 0 12px 40px rgba(20,184,166,0.12); border-color: rgba(20,184,166,0.2); }
+        .tip-card.accent-green:hover  { box-shadow: 0 12px 40px rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.2); }
+
+        /* Corrected card — highlighted amber border */
+        .tip-card.is-corrected {
+            border-color: rgba(245, 158, 11, 0.3);
+            background: rgba(20, 14, 4, 0.75);
+        }
+
+        .tip-card.is-corrected::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(245,158,11,0.6), transparent);
+        }
+
+        /* New card — highlighted green border */
+        .tip-card.is-new {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(4, 20, 14, 0.75);
+        }
+
+        .tip-card.is-new::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(16,185,129,0.6), transparent);
+        }
+
+        /* ── Card Badges ── */
+        .card-badges {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+
+        .badge-corrected {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .badge-new {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .badge-category {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .badge-category.amber  { background: rgba(217,119,6,0.1); color: #fbbf24; border-color: rgba(217,119,6,0.25); }
+        .badge-category.blue   { background: rgba(59,130,246,0.1); color: #93c5fd; border-color: rgba(59,130,246,0.25); }
+        .badge-category.purple { background: rgba(139,92,246,0.1); color: #c4b5fd; border-color: rgba(139,92,246,0.25); }
+        .badge-category.teal   { background: rgba(20,184,166,0.1); color: #5eead4; border-color: rgba(20,184,166,0.25); }
+        .badge-category.green  { background: rgba(16,185,129,0.1); color: #34d399; border-color: rgba(16,185,129,0.25); }
+
+        /* ── Card Content ── */
+        .card-title {
+            font-size: 15.5px;
+            font-weight: 700;
+            color: #f0f0f0;
+            margin-bottom: 9px;
+            line-height: 1.3;
+            letter-spacing: -0.2px;
+        }
+
+        .card-body {
+            font-size: 13.5px;
+            color: rgba(255,255,255,0.45);
+            line-height: 1.65;
+        }
+
+        /* ── Expand Arrow ── */
+        .card-expand {
+            position: absolute;
+            bottom: 16px; right: 18px;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.4);
+            transition: all 0.25s ease;
+            font-size: 14px;
+        }
+
+        .tip-card:hover .card-expand {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            transform: rotate(45deg);
+        }
+
+        /* ── Golden Rules Card ── */
+        .golden-rules-card {
+            background: rgba(14, 14, 14, 0.7);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-radius: 24px;
+            padding: 36px 40px;
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .golden-rules-card::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -80px;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .golden-rules-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .golden-rules-icon {
+            width: 32px; height: 32px;
+            background: rgba(245,158,11,0.15);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+
+        .rules-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 10px;
+            list-style: none;
+        }
+
+        .rules-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13.5px;
+            color: rgba(255,255,255,0.6);
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s ease;
+            line-height: 1.5;
+        }
+
+        .rules-list li:hover {
+            background: rgba(245,158,11,0.06);
+            border-color: rgba(245,158,11,0.15);
+            color: rgba(255,255,255,0.85);
+        }
+
+        .rule-arrow {
+            color: var(--claude-amber);
+            flex-shrink: 0;
+            margin-top: 1px;
+            font-size: 13px;
+        }
+
+        /* ── Expanded Card Overlay (Modal) ── */
+        .card-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .card-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .card-modal {
+            background: #0f0f0f;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 24px;
+            padding: 36px;
+            max-width: 560px;
+            width: 100%;
+            position: relative;
+            transform: scale(0.92) translateY(16px);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+        }
+
+        .card-modal-overlay.active .card-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 18px; right: 18px;
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+        }
+
+        .modal-badges { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+            line-height: 1.25;
+        }
+
+        .modal-body {
+            font-size: 15px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.7;
+        }
+
+        .modal-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin: 20px 0;
+        }
+
+        .modal-tip-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--claude-amber);
+            margin-bottom: 8px;
+        }
+
+        /* ── Progress Bar ── */
+        .reading-progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 2px;
+            background: linear-gradient(to right, var(--claude-amber), var(--claude-amber-light));
+            z-index: 9999;
+            transition: width 0.1s linear;
+            width: 0%;
+        }
+
+        /* ── Section count pill ── */
+        .section-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.3);
+            padding: 3px 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            margin-left: auto;
+        }
+
+        /* ── Section 3 two-col special layout ── */
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 700px) {
+            .two-col-grid { grid-template-columns: 1fr; }
+            .tips-grid { grid-template-columns: 1fr; }
+            .rules-list { grid-template-columns: 1fr; }
+            .golden-rules-card { padding: 24px 20px; }
+            .card-modal { padding: 24px 20px; }
+            .tips-title { letter-spacing: -1px; }
+        }
+
+        /* Stagger card animation delay */
+        .tips-grid .tip-card:nth-child(1) { animation-delay: 0.05s; }
+        .tips-grid .tip-card:nth-child(2) { animation-delay: 0.1s; }
+        .tips-grid .tip-card:nth-child(3) { animation-delay: 0.15s; }
+        .tips-grid .tip-card:nth-child(4) { animation-delay: 0.2s; }
+        .tips-grid .tip-card:nth-child(5) { animation-delay: 0.25s; }
+
+        /* Floating section nav (side) */
+        .side-nav {
+            position: fixed;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .side-nav-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .side-nav-dot::before {
+            content: attr(data-label);
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+            background: rgba(10,10,10,0.9);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 4px 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .side-nav-dot:hover::before { opacity: 1; }
+
+        .side-nav-dot.active {
+            background: var(--claude-amber);
+            transform: scale(1.5);
+            box-shadow: 0 0 8px rgba(217,119,6,0.6);
+        }
+
+        @media (max-width: 1100px) {
+            .side-nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Reading Progress Bar -->
+    <div class="reading-progress" id="readingProgress"></div>
+
+    <!-- Canvas Background -->
+    <div id="canvas-container">
+        <canvas id="kinetic-grid"></canvas>
+    </div>
+    <div class="vignette"></div>
+
+    <!-- Navbar -->
+    <div class="nav-wrapper">
+        <nav>
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 10 L15 90 L55 90 C80 90 90 75 90 50 C90 25 80 10 55 10 Z" fill="none" stroke="white" stroke-width="10" stroke-linejoin="round" />
+                    <path d="M38 35 C38 35 62 35 62 48 C62 61 38 61 38 74 C38 74 62 74 62 74" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span class="logo-text">arshan</span>
+            </div>
+
+            <div class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span><span></span><span></span>
+            </div>
+
+            <ul class="nav-links" id="navLinks">
+                <div class="pill" id="pill"></div>
+                <li><a href="/">Home</a></li>
+                <li><a href="claude-tips" class="active-text">Claude Tips</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">My Journey</a></li>
+            </ul>
+
+            <div class="nav-cta-group">
+                <button class="cta-btn cta-social">Social</button>
+                <button class="cta-btn">Contact Me</button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Side Navigation Dots -->
+    <div class="side-nav" id="sideNav">
+        <div class="side-nav-dot active" data-target="section-1" data-label="Setup"></div>
+        <div class="side-nav-dot" data-target="section-2" data-label="Efficiency"></div>
+        <div class="side-nav-dot" data-target="section-3" data-label="Models"></div>
+        <div class="side-nav-dot" data-target="section-4" data-label="Integrations"></div>
+        <div class="side-nav-dot" data-target="section-5" data-label="Golden Rules"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="tips-page">
+
+        <!-- Hero -->
+        <div class="tips-hero">
+            <div class="tips-eyebrow">
+                <div class="tips-eyebrow-dot"></div>
+                Claude Mastery Guide
+            </div>
+            <h1 class="tips-title">Use Claude<br>Like a Pro</h1>
+            <p class="tips-subtitle">
+                5 categories. 17 actionable tips. Everything you need to get more out of Claude — faster, smarter, cheaper.
+            </p>
+            <div class="tips-nav">
+                <div class="tips-nav-pill active" data-target="section-1">Setup &amp; Structure</div>
+                <div class="tips-nav-pill" data-target="section-2">Prompt Efficiency</div>
+                <div class="tips-nav-pill" data-target="section-3">Model Selection</div>
+                <div class="tips-nav-pill" data-target="section-4">Integrations</div>
+                <div class="tips-nav-pill" data-target="section-5">Golden Rules</div>
+            </div>
+        </div>
+
+        <!-- ─────────────────────────────
+             SECTION 1: Projects — Setup & Structure
+             ───────────────────────────── -->
+        <section class="tips-section" id="section-1">
+            <div class="section-header">
+                <div class="section-number amber">1</div>
+                <div>
+                    <div class="section-title">Projects — Setup &amp; Structure</div>
+                    <div class="section-subtitle">Build the right foundation before you type a single prompt</div>
+                </div>
+                <div class="section-sep"></div>
+                <div class="section-count">5 tips</div>
+            </div>
+
+            <div class="tips-grid">
+
+                <!-- Naming -->
+                <div class="tip-card accent-amber" data-title="Use brand name as project name" data-body="Name each project after your brand or client. This keeps work clearly separated and easy to navigate — you'll never lose track of which Claude conversation belongs to which client.">
+                    <div class="card-badges">
+                        <span class="badge badge-category amber">Naming</span>
+                    </div>
+                    <div class="card-title">Use brand name as project name</div>
+                    <div class="card-body">Name each project after your brand or client. Keeps work clearly separated and easy to navigate.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="tip-card accent-blue" data-title="Add strict instructions per project" data-body="Set custom instructions inside each project so Claude always outputs in your preferred format, tone, and style — without repeating yourself each time. This is the single biggest time saver for repeat work.">
+                    <div class="card-badges">
+                        <span class="badge badge-category blue">Instructions</span>
+                    </div>
+                    <div class="card-title">Add strict instructions per project</div>
+                    <div class="card-body">Set custom instructions inside each project so Claude always outputs in your preferred format, tone, and style.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Documents — Corrected -->
+                <div class="tip-card accent-amber is-corrected" data-title="Upload documents — with caution" data-body="You can upload brand docs and guidelines to a project for convenience, but note: they still count against your context/tokens each time the chat loads. Heavy documents will eat into your limits — keep uploads lean and essential only. Prefer pasting key excerpts directly into instructions instead.">
+                    <div class="card-badges">
+                        <span class="badge badge-corrected">⚠ Corrected</span>
+                        <span class="badge badge-category amber">Documents</span>
+                    </div>
+                    <div class="card-title">Upload documents in project — with caution</div>
+                    <div class="card-body">They still count against your context/tokens each time the chat loads. Keep uploads lean and essential only.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- One Chat -->
+                <div class="tip-card accent-teal" data-title="Stay inside one chat per project" data-body="Don't switch chats. A single continuous chat builds context and saves time — you won't need to re-explain brand details, tone preferences, or past decisions each session. Claude's memory of this conversation is your biggest asset.">
+                    <div class="card-badges">
+                        <span class="badge badge-category teal">One Chat</span>
+                    </div>
+                    <div class="card-title">Stay inside one chat per project</div>
+                    <div class="card-body">Don't switch chats. A single continuous chat builds context and saves time — you won't need to re-explain brand details each session.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Memory — New -->
+                <div class="tip-card accent-green is-new" data-title="Enable memory in settings" data-body="Turn on the memory option in Claude settings. Claude will remember key details from your conversations over time, reducing the need to repeat context, preferences, or brand information again and again. This is a brand-new feature — enable it now before everyone does.">
+                    <div class="card-badges">
+                        <span class="badge badge-new">✦ New</span>
+                        <span class="badge badge-category green">Memory</span>
+                    </div>
+                    <div class="card-title">Enable memory in settings</div>
+                    <div class="card-body">Turn on the memory option in Claude settings. Claude will remember key details from your conversations over time.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────
+             SECTION 2: Prompt Efficiency
+             ───────────────────────────── -->
+        <section class="tips-section" id="section-2">
+            <div class="section-header">
+                <div class="section-number blue">2</div>
+                <div>
+                    <div class="section-title">Prompt Efficiency — Save Credits</div>
+                    <div class="section-subtitle">Write less, get more. Every message costs — make it count</div>
+                </div>
+                <div class="section-sep"></div>
+                <div class="section-count">4 tips</div>
+            </div>
+
+            <div class="tips-grid">
+
+                <!-- Ask First -->
+                <div class="tip-card accent-blue" data-title="Add a question phase to prompts" data-body="Tell Claude to ask clarifying questions before generating. This avoids bad outputs and wastes no follow-up prompts. Start prompts with 'Before you begin, ask me any clarifying questions you need.' This one habit cuts your wasted iterations in half.">
+                    <div class="card-badges">
+                        <span class="badge badge-category blue">Ask First</span>
+                    </div>
+                    <div class="card-title">Add a question phase to prompts</div>
+                    <div class="card-body">Tell Claude to ask clarifying questions before generating. This avoids bad outputs and wastes no follow-up prompts.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Edit don't re-prompt -->
+                <div class="tip-card accent-purple" data-title="Edit your prompt if output is wrong" data-body="If the output is off, edit the original prompt and regenerate — don't send a new message. Every new message costs credits. Use the edit button on your message to refine it. This is one of the most overlooked features of Claude's interface.">
+                    <div class="card-badges">
+                        <span class="badge badge-category purple">Edit, don't re-prompt</span>
+                    </div>
+                    <div class="card-title">Edit your prompt if output is wrong</div>
+                    <div class="card-body">If the output is off, edit the original prompt and regenerate — don't send a new message. Every new message costs credits.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Batch Questions -->
+                <div class="tip-card accent-teal" data-title="Ask everything in one message" data-body="Combine related questions into a single prompt instead of multiple back-and-forth messages. Fewer prompts = fewer credits used. Think through what you need before you send, and batch it all together. Claude handles multi-part questions exceptionally well.">
+                    <div class="card-badges">
+                        <span class="badge badge-category teal">Batch Questions</span>
+                    </div>
+                    <div class="card-title">Ask everything in one message</div>
+                    <div class="card-body">Combine related questions into a single prompt instead of multiple back-and-forth messages. Fewer prompts = fewer credits used.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Lean Prompts — Corrected -->
+                <div class="tip-card accent-amber is-corrected" data-title="Skip useless filler in your prompts" data-body="Remove unnecessary filler, over-explanations, and verbose descriptions from your prompts. Keep messages tight and direct — only include what Claude actually needs to do the task well. 'Write a product description for X. Tone: punchy. Max 80 words.' beats a 10-line rambling setup every time.">
+                    <div class="card-badges">
+                        <span class="badge badge-corrected">⚠ Corrected</span>
+                        <span class="badge badge-category amber">Lean Prompts</span>
+                    </div>
+                    <div class="card-title">Skip useless filler in your prompts</div>
+                    <div class="card-body">Remove unnecessary filler and verbose descriptions. Keep messages tight and direct — only include what Claude actually needs.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────
+             SECTION 3: Model Selection
+             ───────────────────────────── -->
+        <section class="tips-section" id="section-3">
+            <div class="section-header">
+                <div class="section-number purple">3</div>
+                <div>
+                    <div class="section-title">Model Selection — Use the Right Tool</div>
+                    <div class="section-subtitle">Pick the right model for the job and stretch your credits further</div>
+                </div>
+                <div class="section-sep"></div>
+                <div class="section-count">2 tips</div>
+            </div>
+
+            <div class="two-col-grid">
+
+                <!-- Haiku -->
+                <div class="tip-card accent-teal" data-title="Use Haiku for simple tasks" data-body="Claude Haiku is faster and uses fewer credits. Switch to it for lightweight, straightforward tasks to preserve your free-tier allowance. Good for: quick rewrites, summarizing short text, formatting, simple Q&A. Save Sonnet and Opus for complex writing, analysis, and coding.">
+                    <div class="card-badges">
+                        <span class="badge badge-category teal">Haiku Mode</span>
+                    </div>
+                    <div class="card-title">Use Haiku for simple tasks</div>
+                    <div class="card-body">Claude Haiku is faster and uses fewer credits. Switch to it for lightweight, straightforward tasks to preserve your free-tier allowance.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- ChatGPT — Corrected -->
+                <div class="tip-card accent-amber is-corrected" data-title="Use ChatGPT for low-value throwaway tasks" data-body="Use ChatGPT for useless or low-priority tasks that don't need quality — not specifically for browsing. Save Claude for analysis, writing, structured work, and anything where output quality actually matters. Think of ChatGPT as a quick scratchpad, Claude as your expert collaborator.">
+                    <div class="card-badges">
+                        <span class="badge badge-corrected">⚠ Corrected</span>
+                        <span class="badge badge-category amber">ChatGPT</span>
+                    </div>
+                    <div class="card-title">Use ChatGPT for low-value throwaway tasks</div>
+                    <div class="card-body">Use ChatGPT for low-priority tasks that don't need quality. Save Claude for analysis, writing, and anything where output quality matters.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────
+             SECTION 4: Integrations
+             ───────────────────────────── -->
+        <section class="tips-section" id="section-4">
+            <div class="section-header">
+                <div class="section-number teal">4</div>
+                <div>
+                    <div class="section-title">Integrations — Claude Beyond the Chat</div>
+                    <div class="section-subtitle">Use Claude everywhere you already work — no tab switching</div>
+                </div>
+                <div class="section-sep"></div>
+                <div class="section-count">4 tips</div>
+            </div>
+
+            <div class="tips-grid">
+
+                <!-- Chrome Extension -->
+                <div class="tip-card accent-blue" data-title="Claude in Chrome — ask from any page" data-body="Install the Claude Chrome extension. While browsing a competitor's site, open the sidebar and ask Claude directly — no need to switch tabs or copy-paste anything. Great for: competitive analysis, rewriting competitor copy, extracting insights from any webpage in real time.">
+                    <div class="card-badges">
+                        <span class="badge badge-category blue">Chrome Extension</span>
+                    </div>
+                    <div class="card-title">Claude in Chrome — ask from any page</div>
+                    <div class="card-body">Install the Claude Chrome extension. While browsing any site, open the sidebar and ask Claude directly — no tab switching needed.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Excel & PowerPoint -->
+                <div class="tip-card accent-purple" data-title="Claude in Excel and PowerPoint" data-body="Use Claude directly inside Excel and PowerPoint to write content, generate slides, analyze data, and format outputs without leaving the app. Available via the Microsoft 365 Copilot-style sidebar. Huge time saver for client reports and pitch decks.">
+                    <div class="card-badges">
+                        <span class="badge badge-category purple">Excel &amp; PowerPoint</span>
+                    </div>
+                    <div class="card-title">Claude in Excel and PowerPoint</div>
+                    <div class="card-body">Use Claude directly inside Excel and PowerPoint to write content, generate slides, analyze data, and format outputs without leaving the app.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Word -->
+                <div class="tip-card accent-amber" data-title="Claude in Word" data-body="Claude works inside Word too — use it for drafting, editing, and structuring documents directly within the editor. Ideal for: long-form content, brand guidelines, SOPs, proposals. No more copy-pasting between Claude and Word.">
+                    <div class="card-badges">
+                        <span class="badge badge-category amber">Word Documents</span>
+                    </div>
+                    <div class="card-title">Claude in Word</div>
+                    <div class="card-body">Claude works inside Word too — use it for drafting, editing, and structuring documents directly within the editor.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+                <!-- Visualizations -->
+                <div class="tip-card accent-teal" data-title="Ask Claude to visualize anything" data-body="Claude can generate charts, diagrams, flowcharts, dashboards, and interactive visuals directly inside the chat — no separate tool needed. Ask for a Mermaid diagram, a data table, or an SVG chart and Claude will produce it inline. Perfect for quick client presentations and strategy decks.">
+                    <div class="card-badges">
+                        <span class="badge badge-category teal">Visualizations</span>
+                    </div>
+                    <div class="card-title">Ask Claude to visualize anything</div>
+                    <div class="card-body">Claude can generate charts, diagrams, flowcharts, and interactive visuals directly inside the chat — no separate tool needed.</div>
+                    <div class="card-expand">+</div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────
+             SECTION 5: Golden Rules
+             ───────────────────────────── -->
+        <section class="tips-section" id="section-5">
+            <div class="section-header">
+                <div class="section-number gold">5</div>
+                <div>
+                    <div class="section-title">Best Practices — Golden Rules</div>
+                    <div class="section-subtitle">The complete updated ruleset — save this, share it, live by it</div>
+                </div>
+                <div class="section-sep"></div>
+                <div class="section-count">14 rules</div>
+            </div>
+
+            <div class="tips-grid last-section">
+                <div class="golden-rules-card">
+                    <div class="golden-rules-title">
+                        <div class="golden-rules-icon">⚡</div>
+                        Complete Updated Ruleset
+                    </div>
+                    <ul class="rules-list">
+                        <li><span class="rule-arrow">→</span> One project per brand, named clearly after the brand</li>
+                        <li><span class="rule-arrow">→</span> Set strict project-level instructions so you never repeat yourself</li>
+                        <li><span class="rule-arrow">→</span> Upload docs to project for convenience — but keep them lean (they cost tokens)</li>
+                        <li><span class="rule-arrow">→</span> Enable memory in settings so Claude retains key context over time</li>
+                        <li><span class="rule-arrow">→</span> Stay in one chat per project — don't switch chats mid-work</li>
+                        <li><span class="rule-arrow">→</span> Add a question phase to complex prompts before generating output</li>
+                        <li><span class="rule-arrow">→</span> Edit prompts instead of sending new ones when output is off</li>
+                        <li><span class="rule-arrow">→</span> Batch multiple questions into a single message</li>
+                        <li><span class="rule-arrow">→</span> Write lean prompts — cut filler and unnecessary descriptions</li>
+                        <li><span class="rule-arrow">→</span> Use Haiku for simple tasks, Sonnet/Opus for deep analysis</li>
+                        <li><span class="rule-arrow">→</span> Use ChatGPT for throwaway low-value tasks, Claude for quality work</li>
+                        <li><span class="rule-arrow">→</span> Use the Chrome extension while browsing — ask Claude without switching tabs</li>
+                        <li><span class="rule-arrow">→</span> Use Claude in Excel, PowerPoint, and Word for in-app assistance</li>
+                        <li><span class="rule-arrow">→</span> Ask Claude to generate visualizations directly in chat</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Card Detail Modal -->
+    <div class="card-modal-overlay" id="cardModal">
+        <div class="card-modal">
+            <button class="modal-close" id="modalClose">×</button>
+            <div class="modal-badges" id="modalBadges"></div>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-divider"></div>
+            <div class="modal-tip-label">PRO TIP</div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js" defer></script>
+    <script>
+    // ========================================
+    // CLAUDE TIPS PAGE — INTERACTIVE JS
+    // ========================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // ── Scroll reveal for sections ──
+        const sections = document.querySelectorAll('.tips-section');
+        const revealObs = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08 });
+        sections.forEach(s => revealObs.observe(s));
+
+        // ── Reading Progress Bar ──
+        const progressBar = document.getElementById('readingProgress');
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            progressBar.style.width = pct + '%';
+        }, { passive: true });
+
+        // ── Side Nav & Section Nav active state ──
+        const sideDots = document.querySelectorAll('.side-nav-dot');
+        const navPills = document.querySelectorAll('.tips-nav-pill');
+
+        const sectionObs = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    sideDots.forEach(d => d.classList.toggle('active', d.dataset.target === id));
+                    navPills.forEach(p => p.classList.toggle('active', p.dataset.target === id));
+                }
+            });
+        }, { threshold: 0.4 });
+        sections.forEach(s => sectionObs.observe(s));
+
+        // Click side dots / nav pills → smooth scroll
+        [...sideDots, ...navPills].forEach(el => {
+            el.addEventListener('click', () => {
+                const target = document.getElementById(el.dataset.target);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // ── Card Modal ──
+        const modal = document.getElementById('cardModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalBadges = document.getElementById('modalBadges');
+        const modalClose = document.getElementById('modalClose');
+
+        document.querySelectorAll('.tip-card').forEach(card => {
+            card.addEventListener('click', () => {
+                modalTitle.textContent = card.dataset.title || '';
+                modalBody.textContent = card.dataset.body || '';
+
+                // Replicate badges
+                const badgesEl = card.querySelector('.card-badges');
+                modalBadges.innerHTML = badgesEl ? badgesEl.innerHTML : '';
+
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        const closeModal = () => {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        };
+
+        modalClose.addEventListener('click', closeModal);
+        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    });
+    </script>
+
+</body>
+</html>

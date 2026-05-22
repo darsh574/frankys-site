@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager — Darshan's Workspace</title>
+    <meta name="description" content="Personal task manager for website changes, maintenance and technical SEO across brands.">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="task-manager.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="src/favicon.svg">
+</head>
+
+<body>
+
+    <!-- ===== Nav (same component as home) ===== -->
+    <div class="nav-wrapper">
+        <nav>
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 10 L15 90 L55 90 C80 90 90 75 90 50 C90 25 80 10 55 10 Z" fill="none" stroke="white"
+                        stroke-width="10" stroke-linejoin="round" />
+                    <path d="M38 35 C38 35 62 35 62 48 C62 61 38 61 38 74 C38 74 62 74 62 74" fill="none" stroke="white"
+                        stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span class="logo-text">arshan</span>
+            </div>
+
+            <div class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span><span></span><span></span>
+            </div>
+
+            <ul class="nav-links" id="navLinks">
+                <div class="pill" id="pill"></div>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="claude-tips">Claude Tips</a></li>
+                <li><a href="task-manager.html" class="active-text">Tasks</a></li>
+            </ul>
+
+            <div class="nav-cta-group">
+                <button class="cta-btn" id="newTaskNavBtn">+ New Task</button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ===== Background (same kinetic grid as home) ===== -->
+    <div id="canvas-container">
+        <canvas id="kinetic-grid"></canvas>
+    </div>
+    <div class="vignette"></div>
+
+    <!-- ===== Main ===== -->
+    <main class="tm-main">
+        <header class="tm-header">
+            <h1 class="tm-title" id="greetingText">Task Manager</h1>
+            <p class="tm-tagline" id="taglineText">Track website changes, maintenance & technical SEO across your brands</p>
+        </header>
+
+        <!-- Stats dashboard -->
+        <section class="tm-stats" id="tmStats">
+            <div class="tm-stat" style="--stat-color:#3b82f6">
+                <div class="tm-stat-num" id="statTotal">0</div>
+                <div class="tm-stat-label">Total Tasks</div>
+            </div>
+            <div class="tm-stat" style="--stat-color:#f59e0b">
+                <div class="tm-stat-num" id="statProgress">0</div>
+                <div class="tm-stat-label">In Progress</div>
+            </div>
+            <div class="tm-stat" style="--stat-color:#22c55e">
+                <div class="tm-stat-num" id="statDone">0</div>
+                <div class="tm-stat-label">Completed</div>
+            </div>
+            <div class="tm-stat" style="--stat-color:#ef4444">
+                <div class="tm-stat-num" id="statOverdue">0</div>
+                <div class="tm-stat-label">Overdue</div>
+            </div>
+        </section>
+
+        <!-- Toolbar -->
+        <section class="tm-toolbar">
+            <div class="tm-search">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Search tasks..." autocomplete="off">
+            </div>
+
+            <select class="tm-select" id="filterBrand"><option value="">All Brands</option></select>
+            <select class="tm-select" id="filterType">
+                <option value="">All Types</option>
+                <option value="website_change">Website Change</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="seo_fix">Technical SEO Fix</option>
+                <option value="bug">Bug Fix</option>
+                <option value="content">Content Update</option>
+                <option value="other">Other</option>
+            </select>
+            <select class="tm-select" id="filterPriority">
+                <option value="">All Priorities</option>
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+            <select class="tm-select" id="sortBy">
+                <option value="created">Sort: Newest</option>
+                <option value="due">Sort: Due date</option>
+                <option value="priority">Sort: Priority</option>
+                <option value="brand">Sort: Brand</option>
+            </select>
+
+            <div class="tm-view-toggle">
+                <button id="viewBoard" class="active" title="Board view">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="9" y="3" width="6" height="11"/><rect x="15" y="3" width="6" height="15"/></svg>
+                    Board
+                </button>
+                <button id="viewList" title="List view">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    List
+                </button>
+            </div>
+
+            <button class="tm-btn tm-btn-primary" id="newTaskBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Task
+            </button>
+
+            <button class="tm-btn tm-btn-ghost" id="exportBtn" title="Backup tasks to a file">Export</button>
+            <button class="tm-btn tm-btn-ghost" id="importBtn" title="Restore tasks from a file">Import</button>
+            <input type="file" id="importFile" accept="application/json" hidden>
+
+            <span class="tm-conn" id="connBadge"><span class="dot"></span><span id="connText">Local</span></span>
+        </section>
+
+        <!-- Board view -->
+        <section class="tm-board" id="boardView">
+            <div class="tm-column" data-status="todo">
+                <div class="tm-column-head">
+                    <span class="tm-column-dot" style="background:var(--tm-todo)"></span>
+                    <span class="tm-column-title">To Do</span>
+                    <span class="tm-column-count" id="countTodo">0</span>
+                </div>
+                <div class="tm-column-body" id="colTodo"></div>
+            </div>
+            <div class="tm-column" data-status="in_progress">
+                <div class="tm-column-head">
+                    <span class="tm-column-dot" style="background:var(--tm-progress)"></span>
+                    <span class="tm-column-title">In Progress</span>
+                    <span class="tm-column-count" id="countProgress">0</span>
+                </div>
+                <div class="tm-column-body" id="colProgress"></div>
+            </div>
+            <div class="tm-column" data-status="done">
+                <div class="tm-column-head">
+                    <span class="tm-column-dot" style="background:var(--tm-done)"></span>
+                    <span class="tm-column-title">Done</span>
+                    <span class="tm-column-count" id="countDone">0</span>
+                </div>
+                <div class="tm-column-body" id="colDone"></div>
+            </div>
+        </section>
+
+        <!-- List view -->
+        <section class="tm-list" id="listView" style="display:none"></section>
+    </main>
+
+    <!-- ===== Task modal ===== -->
+    <div class="tm-modal-overlay" id="taskModal">
+        <div class="tm-modal">
+            <div class="tm-modal-head">
+                <h2 id="modalTitle">New Task</h2>
+                <button class="tm-modal-close" id="modalClose">&times;</button>
+            </div>
+
+            <form id="taskForm">
+                <input type="hidden" id="taskId">
+
+                <div class="tm-field">
+                    <label for="fTitle">Task title *</label>
+                    <input type="text" class="tm-input" id="fTitle" placeholder="e.g. Fix broken canonical tags on blog" required>
+                </div>
+
+                <div class="tm-field">
+                    <label for="fBrand">Brand / Website *</label>
+                    <div class="tm-brand-row">
+                        <select id="fBrand" required></select>
+                        <button type="button" class="tm-btn tm-btn-ghost" id="addBrandBtn" title="Add a new brand">+ Brand</button>
+                    </div>
+                </div>
+
+                <div class="tm-field-row">
+                    <div class="tm-field">
+                        <label for="fType">Task type</label>
+                        <select id="fType">
+                            <option value="website_change">Website Change</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="seo_fix">Technical SEO Fix</option>
+                            <option value="bug">Bug Fix</option>
+                            <option value="content">Content Update</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="tm-field">
+                        <label for="fPriority">Priority</label>
+                        <select id="fPriority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tm-field-row">
+                    <div class="tm-field">
+                        <label for="fStatus">Status</label>
+                        <select id="fStatus">
+                            <option value="todo">To Do</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </div>
+                    <div class="tm-field">
+                        <label for="fDue">Due date</label>
+                        <input type="date" class="tm-input" id="fDue">
+                    </div>
+                </div>
+
+                <div class="tm-field">
+                    <label for="fUrl">Website URL (optional)</label>
+                    <input type="url" class="tm-input" id="fUrl" placeholder="https://example.com/page">
+                </div>
+
+                <div class="tm-field">
+                    <label for="fDetails">Additional information / notes</label>
+                    <textarea class="tm-textarea" id="fDetails" placeholder="What needs to be done, context, references, login notes..."></textarea>
+                </div>
+
+                <div class="tm-field">
+                    <label>Checklist / subtasks</label>
+                    <div class="tm-subtask-list" id="subtaskList"></div>
+                    <div class="tm-subtask-add">
+                        <input type="text" class="tm-input" id="subtaskInput" placeholder="Add a step and press Enter">
+                        <button type="button" class="tm-btn tm-btn-ghost" id="addSubtaskBtn">Add</button>
+                    </div>
+                </div>
+
+                <div class="tm-modal-foot">
+                    <button type="button" class="tm-btn tm-btn-ghost" id="deleteTaskBtn" style="display:none">Delete</button>
+                    <button type="button" class="tm-btn tm-btn-ghost" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="tm-btn tm-btn-primary" id="saveBtn">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="tm-toast-wrap" id="toastWrap"></div>
+
+    <!-- Supabase client (used only if configured in task-manager.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Theme background + nav behavior -->
+    <script src="script.js" defer></script>
+    <!-- Task manager logic -->
+    <script src="task-manager.js" defer></script>
+</body>
+
+</html>

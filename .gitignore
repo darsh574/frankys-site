@@ -1,0 +1,14 @@
+# OS / editor junk
+Thumbs.db
+.DS_Store
+*.log
+
+# Windows registry export (machine-specific)
+register.reg
+
+# Local Claude memory / agent files
+memory/
+.claude/
+
+# Node (in case tooling is added later)
+node_modules/
