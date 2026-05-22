@@ -268,6 +268,20 @@
         </div>
     </div>
 
+    <!-- ===== Task view (read-only) popup ===== -->
+    <div class="tm-modal-overlay" id="viewModal">
+        <div class="tm-modal">
+            <div class="tm-modal-head">
+                <h2 id="viewTitle">Task</h2>
+                <button class="tm-modal-close" id="viewClose">&times;</button>
+            </div>
+            <div id="viewBody"></div>
+            <div class="tm-modal-foot">
+                <button type="button" class="tm-btn tm-btn-primary" id="viewEditBtn">Edit Task</button>
+            </div>
+        </div>
+    </div>
+
     <div class="tm-toast-wrap" id="toastWrap"></div>
 
     <!-- Supabase client (used only if configured in task-manager.js) -->

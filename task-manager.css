@@ -570,6 +570,72 @@
     margin-top: 24px;
 }
 
+/* ----- Read-only view popup ----- */
+.tm-view-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 6px;
+}
+.tm-view-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.tm-view-key {
+    flex: 0 0 110px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.4);
+}
+.tm-view-val {
+    flex: 1;
+    font-size: 14px;
+    color: #fff;
+    word-break: break-word;
+}
+.tm-view-link { color: var(--accent-blue); text-decoration: none; }
+.tm-view-link:hover { text-decoration: underline; }
+.tm-view-status {
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+.tm-view-status.status-todo { background: rgba(59, 130, 246, 0.18); color: #93c5fd; }
+.tm-view-status.status-in_progress { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+.tm-view-status.status-done { background: rgba(34, 197, 94, 0.18); color: #86efac; }
+
+.tm-view-section { margin-top: 18px; }
+.tm-view-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 8px;
+}
+.tm-view-details {
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 14px;
+    white-space: pre-wrap;
+}
+.tm-view-sub {
+    font-size: 14px;
+    color: #ddd;
+    padding: 5px 2px;
+}
+.tm-view-sub.done { color: #6b7280; text-decoration: line-through; }
+
 /* ==========================================================================
    Toast
    ========================================================================== */

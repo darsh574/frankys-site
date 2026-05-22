@@ -255,6 +255,9 @@ function cardHTML(t) {
             <button class="tm-icon-btn danger" data-act="del" title="Delete">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
+            <button class="tm-icon-btn" data-act="view" title="View details">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
         </div>
     </div>`;
 }
@@ -291,6 +294,7 @@ function bindCards() {
         const id = card.dataset.id;
         card.querySelector('[data-act="edit"]')?.addEventListener('click', e => { e.stopPropagation(); openModal(id); });
         card.querySelector('[data-act="del"]')?.addEventListener('click', e => { e.stopPropagation(); removeTask(id); });
+        card.querySelector('[data-act="view"]')?.addEventListener('click', e => { e.stopPropagation(); openView(id); });
         const sel = card.querySelector('.tm-status-select');
         if (sel) {
             sel.addEventListener('click', e => e.stopPropagation());
@@ -433,6 +437,43 @@ function openModal(id) {
 }
 function closeModal() { $('taskModal').classList.remove('active'); }
 
+// ----- Read-only details popup (eye button) -----
+const STATUS_LABELS = { todo: 'To Do', in_progress: 'In Progress', done: 'Done' };
+function viewRow(label, value) {
+    return `<div class="tm-view-row"><span class="tm-view-key">${label}</span><span class="tm-view-val">${value}</span></div>`;
+}
+function openView(id) {
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
+    const di = dueInfo(t.due_date);
+    const subs = t.subtasks || [];
+    const created = t.created_at ? new Date(t.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+
+    const rows = [
+        viewRow('Brand', `<span class="tm-brand-badge" style="background:${brandColor(t.brand)}">${esc(t.brand)}</span>`),
+        viewRow('Type', esc(TYPE_LABELS[t.task_type] || 'Other')),
+        viewRow('Priority', `<span style="text-transform:capitalize">${esc(t.priority)}</span>`),
+        viewRow('Status', `<span class="tm-view-status status-${t.status}">${STATUS_LABELS[t.status] || esc(t.status)}</span>`),
+        viewRow('Due date', di.label || 'No due date'),
+        viewRow('Created', created)
+    ];
+    if (t.url) rows.push(viewRow('URL', `<a href="${esc(t.url)}" target="_blank" rel="noopener noreferrer" class="tm-view-link">${esc(t.url)}</a>`));
+
+    let html = `<div class="tm-view-rows">${rows.join('')}</div>`;
+    if (t.details) html += `<div class="tm-view-section"><div class="tm-view-label">Additional information</div><div class="tm-view-details">${esc(t.details)}</div></div>`;
+    if (subs.length) {
+        const done = subs.filter(s => s.done).length;
+        const items = subs.map(s => `<div class="tm-view-sub ${s.done ? 'done' : ''}">${s.done ? '✓' : '○'} ${esc(s.text)}</div>`).join('');
+        html += `<div class="tm-view-section"><div class="tm-view-label">Checklist (${done}/${subs.length})</div>${items}</div>`;
+    }
+
+    $('viewTitle').textContent = t.title;
+    $('viewBody').innerHTML = html;
+    $('viewEditBtn').onclick = () => { closeView(); openModal(id); };
+    $('viewModal').classList.add('active');
+}
+function closeView() { $('viewModal').classList.remove('active'); }
+
 async function saveTask(e) {
     e.preventDefault();
     const id = $('taskId').value;
@@ -536,6 +577,8 @@ function bindEvents() {
     $('modalClose').addEventListener('click', closeModal);
     $('cancelBtn').addEventListener('click', closeModal);
     $('taskModal').addEventListener('click', e => { if (e.target === $('taskModal')) closeModal(); });
+    $('viewClose').addEventListener('click', closeView);
+    $('viewModal').addEventListener('click', e => { if (e.target === $('viewModal')) closeView(); });
     $('taskForm').addEventListener('submit', saveTask);
     $('deleteTaskBtn').addEventListener('click', () => { const id = $('taskId').value; if (id) { closeModal(); removeTask(id); } });
     $('addBrandBtn').addEventListener('click', addBrand);
@@ -552,7 +595,7 @@ function bindEvents() {
     $('importBtn').addEventListener('click', () => $('importFile').click());
     $('importFile').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeView(); } });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
