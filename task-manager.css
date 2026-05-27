@@ -821,3 +821,104 @@
 @media (hover: none) {
     .tm-icon-btn { opacity: 1; }
 }
+
+/* ==========================================================================
+   Floating quick-links sidebar (left edge)
+   ========================================================================== */
+.tm-quicklinks {
+    position: fixed;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 8px;
+    background: rgba(20, 20, 20, 0.55);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 18px;
+    z-index: 90;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+.tm-quicklinks a {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    text-decoration: none;
+    overflow: visible;
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tm-ql-orb {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    animation: tm-ql-float 4.2s ease-in-out infinite;
+    animation-delay: calc(var(--qd, 0) * 0.28s);
+    will-change: transform;
+}
+
+.tm-quicklinks a img {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.25s ease, filter 0.25s ease;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+.tm-quicklinks a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(59, 130, 246, 0.45);
+    box-shadow: 0 8px 22px rgba(59, 130, 246, 0.28);
+}
+
+.tm-quicklinks a:hover img {
+    transform: scale(1.18);
+}
+
+.tm-quicklinks a::after {
+    content: attr(data-label);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-6px);
+    padding: 6px 10px;
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tm-quicklinks a:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
+@keyframes tm-ql-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tm-ql-orb { animation: none; }
+}
+
+/* Hide on narrower screens so the sidebar doesn't crowd the board */
+@media (max-width: 1180px) {
+    .tm-quicklinks { display: none; }
+}
