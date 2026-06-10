@@ -13,6 +13,52 @@ framework, no bundler. Pages are served directly.
 - `task-manager.html` / `task-manager.css` / `task-manager.js` — the Task
   Manager app (see below). Lives at `/task-manager`.
 - `claude-tips.html`, `porto.html` — other standalone pages.
+- `hovers-os-timeline.html` / `.css` / `.js` — Hovers OS build-roadmap
+  dashboard (calendar + Gantt views). Served at
+  `/task-manager/hovers-os-timeline` via an explicit `.htaccess` rewrite
+  (the file lives at repo root — do NOT create a real `task-manager/`
+  folder, it would shadow the `/task-manager` page). Asset/nav URLs in
+  this page must stay root-absolute (`/styles.css`) because of the
+  pseudo-folder URL. CSS/JS namespaced with the `ht-` prefix. Schedule is
+  computed in JS from `START_DATE` (11 Jun 2026), default 3 working days
+  per section, Sat/Sun skipped; section statuses are derived live from
+  today's date. Sections cascade sequentially, so editing one section's
+  `duration` or `push_days` (working-day gap before it starts)
+  automatically shifts every later section. Every card (and the popup)
+  has a status dropdown: `auto` (follow timeline dates) / `todo` /
+  `in_progress` / `testing` / `done`. The shipped sections (Accounts,
+  Tasks) are stored in `hos_sections` too (positions -2/-1, duration 0)
+  so their status is editable; only `auto` is unavailable for them.
+  Per-section edits (status, length, push) and comments sync to Supabase
+  tables `hos_sections` / `hos_comments` (same project + publishable key
+  as the task manager); falls back to localStorage with a toast if the
+  tables are missing. Colors/names/order are seeded from
+  `DEFAULT_SECTIONS` in the JS — the DB only stores overrides. DB
+  migration (**already applied** — tables exist and are seeded; kept for
+  reference):
+  ```sql
+  create table if not exists hos_sections (
+    key text primary key,
+    name text not null,
+    position int not null default 0,
+    duration int not null default 3,
+    push_days int not null default 0,
+    status text not null default 'auto', -- 'auto' | 'done'
+    updated_at timestamptz default now()
+  );
+  create table if not exists hos_comments (
+    id uuid primary key default gen_random_uuid(),
+    section_key text not null,
+    body text not null,
+    created_at timestamptz default now()
+  );
+  alter table hos_sections enable row level security;
+  alter table hos_comments enable row level security;
+  create policy "hos_sections anon access" on hos_sections
+    for all using (true) with check (true);
+  create policy "hos_comments anon access" on hos_comments
+    for all using (true) with check (true);
+  ```
 - `script.js` — shared canvas grid + nav behaviour (all classes guard with
   `if (!el) return`, so it's safe to include on any page).
 - `styles.css` — base theme + nav + landing-page styles.
@@ -44,12 +90,40 @@ so internal links can omit `.html`.
   dropdown, drag-and-drop board, list view (default), search/filters/sort,
   subtasks, details + remarks, view popup, export/import, auto-delete of Done
   tasks after `AUTO_DELETE_DAYS` (2).
-- **Pending DB migration** (run in Supabase SQL editor to enable remarks +
-  auto-delete; writes are resilient without them):
+- **Pending DB migration** (run in Supabase SQL editor to enable remarks,
+  auto-delete and the Personal Stuff scope; writes are resilient without
+  these columns, except personal tasks won't save until `scope` exists):
   ```sql
   alter table tasks add column if not exists remarks text;
   alter table tasks add column if not exists completed_at timestamptz;
+  alter table tasks add column if not exists scope text default 'work';
   ```
+
+## Personal Stuff (private scope)
+- The toolbar has a "Personal Stuff" abyss orb. Clicking it opens a
+  password modal (`personal-auth.php`). On success, the page enters
+  personal mode: `body.tm-personal-mode` is added, the title swaps, and
+  all reads/writes filter by `scope='personal'`. Personal tasks are
+  **never** shown in the main (work) view — `getFiltered` and
+  `renderStats` filter by `currentScope`.
+- Session unlock is cached in `sessionStorage.tm_personal_unlocked` —
+  re-entering personal mode in the same tab skips the prompt.
+- Password is stored as a **bcrypt hash** in `ai-config.php`
+  (`$PERSONAL_PASSWORD_HASH`). The plaintext password is never in the
+  repo, in client JS, or in the page source. Generate the hash on the
+  server with:
+  ```bash
+  php -r "echo password_hash('YOUR-PASSWORD', PASSWORD_DEFAULT);"
+  ```
+  Then append to `ai-config.php`:
+  ```php
+  $PERSONAL_PASSWORD_HASH = '$2y$10$...';
+  ```
+- `personal-auth.php` adds a small `usleep` to slow brute-force and never
+  returns the hash to the client — only `{ok: true|false}`.
+- Cloud sync for personal tasks requires the `scope` column above; if
+  it's missing, saves are refused (with a toast) rather than letting the
+  task leak into the work view.
 
 ### Known JS gotcha
 Do NOT declare a top-level variable named `supabase` — it collides with the

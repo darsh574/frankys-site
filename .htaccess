@@ -21,6 +21,9 @@ RewriteEngine On
     ExpiresDefault "access plus 2 days"
 </IfModule>
 
+# Hovers OS timeline lives under the /task-manager/ pseudo-folder
+RewriteRule ^task-manager/hovers-os-timeline/?$ hovers-os-timeline.html [NC,L]
+
 # If the request is not for a valid directory
 RewriteCond %{REQUEST_FILENAME} !-d
 # If the request is not for a valid file

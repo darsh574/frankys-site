@@ -922,3 +922,228 @@
 @media (max-width: 1180px) {
     .tm-quicklinks { display: none; }
 }
+
+/* ==========================================================================
+   Personal Stuff — abyss orb button + private mode
+   ========================================================================== */
+
+/* --- The orb itself (pure-CSS port of AbyssOrb) --- */
+.tm-orb {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+    isolation: isolate;
+    flex-shrink: 0;
+    background: radial-gradient(circle at 40% 35%, #0a2540, #041018 75%);
+    box-shadow:
+        0 0 6px #2DD4BF55,
+        0 0 14px #0EA5E944,
+        inset 0 0 6px #04101888;
+    animation: tm-orb-breathe 6s ease-in-out infinite;
+}
+
+.tm-orb--mini { width: 26px; height: 26px; }
+
+.tm-orb-blob {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    top: 20%;
+    left: 20%;
+    border-radius: 50%;
+    filter: blur(5px);
+    mix-blend-mode: screen;
+    will-change: transform;
+}
+
+.tm-orb-blob.b1 {
+    background: radial-gradient(60% 50% at 45% 40%, #2DD4BF, transparent 72%);
+    animation: tm-orb-float-1 9s ease-in-out infinite;
+}
+.tm-orb-blob.b2 {
+    background: radial-gradient(60% 50% at 45% 40%, #0EA5E9, transparent 72%);
+    animation: tm-orb-float-2 11s ease-in-out -2s infinite;
+}
+.tm-orb-blob.b3 {
+    background: radial-gradient(60% 50% at 45% 40%, #22D3EE, transparent 72%);
+    animation: tm-orb-float-3 13s ease-in-out -5s infinite;
+}
+.tm-orb-blob.b4 {
+    background: radial-gradient(60% 50% at 45% 40%, #0891B2, transparent 72%);
+    animation: tm-orb-float-4 10s ease-in-out -7s infinite;
+}
+.tm-orb-blob.b5 {
+    background: radial-gradient(60% 50% at 45% 40%, #1E3A8A, transparent 72%);
+    animation: tm-orb-float-5 12s ease-in-out -3s infinite;
+}
+
+.tm-orb-shine {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 33% 25%, rgba(255,255,255,0.45), transparent 40%);
+    box-shadow: inset 0 0 2px 1px rgba(180,255,250,0.15);
+    pointer-events: none;
+}
+
+@keyframes tm-orb-breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+}
+@keyframes tm-orb-float-1 {
+    0%, 100% { transform: translate(-22%, -18%) scale(0.9) rotate(0deg); }
+    25%      { transform: translate( 18%, -10%) scale(1.1) rotate(60deg); }
+    50%      { transform: translate( 12%,  20%) scale(0.95) rotate(140deg); }
+    75%      { transform: translate(-18%,  12%) scale(1.15) rotate(220deg); }
+}
+@keyframes tm-orb-float-2 {
+    0%, 100% { transform: translate( 14%,  16%) scale(1.0) rotate(0deg); }
+    25%      { transform: translate(-18%,   6%) scale(1.2) rotate(-80deg); }
+    50%      { transform: translate(-10%, -18%) scale(0.9) rotate(-160deg); }
+    75%      { transform: translate( 20%, -14%) scale(1.1) rotate(-260deg); }
+}
+@keyframes tm-orb-float-3 {
+    0%, 100% { transform: translate(  6%, -20%) scale(0.85) rotate(0deg); }
+    25%      { transform: translate( 22%,  10%) scale(1.05) rotate(90deg); }
+    50%      { transform: translate(-14%,  22%) scale(1.2) rotate(190deg); }
+    75%      { transform: translate(-22%, -10%) scale(0.95) rotate(290deg); }
+}
+@keyframes tm-orb-float-4 {
+    0%, 100% { transform: translate(-16%,  20%) scale(1.1) rotate(0deg); }
+    25%      { transform: translate( 12%,  18%) scale(0.9) rotate(110deg); }
+    50%      { transform: translate( 20%, -12%) scale(1.15) rotate(220deg); }
+    75%      { transform: translate(-12%, -22%) scale(1.0) rotate(330deg); }
+}
+@keyframes tm-orb-float-5 {
+    0%, 100% { transform: translate( 18%, -16%) scale(1.0) rotate(0deg); }
+    25%      { transform: translate(-20%,  14%) scale(1.2) rotate(-100deg); }
+    50%      { transform: translate(  8%,  22%) scale(0.85) rotate(-180deg); }
+    75%      { transform: translate( 14%,  -6%) scale(1.1) rotate(-280deg); }
+}
+
+/* --- Toolbar pill button that wraps the orb --- */
+.tm-orb-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 18px 4px 5px;
+    border-radius: 30px;
+    cursor: pointer;
+    background: linear-gradient(120deg, rgba(15,61,62,0.6), rgba(14,165,233,0.18));
+    border: 1px solid rgba(45,212,191,0.35);
+    color: #d7fdf5;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 18px rgba(14,165,233,0.18);
+}
+.tm-orb-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(45,212,191,0.65);
+    box-shadow: 0 6px 22px rgba(45,212,191,0.32);
+    color: #fff;
+}
+.tm-orb-btn:active { transform: translateY(0); }
+
+.tm-orb-label {
+    background: linear-gradient(90deg, #2DD4BF, #22D3EE, #0EA5E9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --- Auth modal --- */
+.tm-auth-modal { max-width: 400px; }
+.tm-auth-modal .tm-modal-head h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+.tm-auth-blurb {
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+.tm-auth-error {
+    color: #f87171;
+    font-size: 12px;
+    margin-top: 8px;
+    min-height: 16px;
+}
+
+/* --- Personal mode banner --- */
+.tm-personal-banner {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(120deg, rgba(15,61,62,0.55), rgba(8,145,178,0.18));
+    border: 1px solid rgba(45,212,191,0.35);
+    border-radius: 16px;
+    padding: 12px 14px 12px 16px;
+    margin-bottom: 18px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: tm-personal-fadein 0.35s ease both;
+}
+body.tm-personal-mode .tm-personal-banner { display: flex; }
+
+.tm-personal-banner-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+    flex: 1;
+    min-width: 0;
+}
+.tm-personal-banner-text strong {
+    background: linear-gradient(90deg, #2DD4BF, #22D3EE);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+.tm-personal-banner-text span {
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+}
+
+@keyframes tm-personal-fadein {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Personal-mode page tint: gives the "popup-like" private feel --- */
+body.tm-personal-mode .tm-title {
+    background: linear-gradient(120deg, #fff 20%, #2DD4BF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+body.tm-personal-mode .tm-stat::before { background: #2DD4BF; }
+body.tm-personal-mode .tm-search input:focus,
+body.tm-personal-mode .tm-select:focus,
+body.tm-personal-mode .tm-input:focus,
+body.tm-personal-mode .tm-textarea:focus {
+    border-color: #2DD4BF;
+    box-shadow: 0 0 0 3px rgba(45,212,191,0.18);
+}
+body.tm-personal-mode .tm-btn-primary:hover {
+    background: #0EA5E9;
+    box-shadow: 0 4px 15px rgba(45,212,191,0.4);
+}
+/* Hide the orb-button while personal mode is open — use the banner's Exit instead */
+body.tm-personal-mode .tm-orb-btn { display: none; }
+
+/* Mobile: keep banner readable */
+@media (max-width: 560px) {
+    .tm-personal-banner { flex-wrap: wrap; }
+}

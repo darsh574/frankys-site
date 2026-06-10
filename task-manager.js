@@ -47,9 +47,14 @@ const BRAND_PALETTE = ['#e11d48', '#8b5cf6', '#0ea5e9', '#22c55e', '#f59e0b',
 let tasks = [];
 let brands = [...DEFAULT_BRANDS];
 let currentView = 'list';
+let currentScope = 'work';            // 'work' (default) or 'personal'
 let editingSubtasks = [];
 let sbClient = null;
 const useSupabase = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
+
+const SESSION_UNLOCK_KEY = 'tm_personal_unlocked';
+function scopeOf(t) { return t.scope === 'personal' ? 'personal' : 'work'; }
+function inScope(t) { return scopeOf(t) === currentScope; }
 
 // ==========================================================================
 // STORAGE LAYER (localStorage + optional Supabase)
@@ -137,7 +142,7 @@ async function refreshFromCloud() {
 }
 
 // Columns that may not exist yet in older Supabase tables.
-const OPTIONAL_COLS = ['completed_at', 'remarks'];
+const OPTIONAL_COLS = ['completed_at', 'remarks', 'scope'];
 async function persistTask(task, isNew) {
     if (!sbClient) { lsSaveTasks(); return; }
     const run = payload => isNew
@@ -145,11 +150,17 @@ async function persistTask(task, isNew) {
         : sbClient.from('tasks').update(payload).eq('id', task.id);
     let { error } = await run(task);
     if (error && /(column|schema cache|does not exist)/i.test(error.message || '')) {
+        // Personal tasks need the `scope` column to stay hidden from work view —
+        // refuse the save rather than strip scope and leak the task.
+        if (task.scope === 'personal' && /scope/i.test(error.message || '')) {
+            toast('Personal mode needs the `scope` column in Supabase. See CLAUDE.md.', 'error');
+            return;
+        }
         // A newer column isn't in the table yet — save without the optional ones.
         const rest = { ...task };
         OPTIONAL_COLS.forEach(c => delete rest[c]);
         ({ error } = await run(rest));
-        if (!error) toast('Saved. Run the SQL to add the completed_at & remarks columns.', 'error');
+        if (!error) toast('Saved. Run the SQL migrations in CLAUDE.md to add new columns.', 'error');
     }
     if (error) { console.error('Supabase write failed', error); toast('Could not save: ' + error.message, 'error'); }
 }
@@ -191,6 +202,7 @@ function getFiltered() {
     const q = $('searchInput').value.trim().toLowerCase();
     const fb = $('filterBrand').value, ft = $('filterType').value, fp = $('filterPriority').value;
     let list = tasks.filter(t => {
+        if (!inScope(t)) return false;
         if (fb && t.brand !== fb) return false;
         if (ft && t.task_type !== ft) return false;
         if (fp && t.priority !== fp) return false;
@@ -222,10 +234,11 @@ function render() {
 
 function renderStats() {
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const overdue = tasks.filter(t => t.status !== 'done' && t.due_date && new Date(t.due_date + 'T00:00:00') < today).length;
-    $('statTotal').textContent = tasks.length;
-    $('statProgress').textContent = tasks.filter(t => t.status === 'in_progress').length;
-    $('statDone').textContent = tasks.filter(t => t.status === 'done').length;
+    const scoped = tasks.filter(inScope);
+    const overdue = scoped.filter(t => t.status !== 'done' && t.due_date && new Date(t.due_date + 'T00:00:00') < today).length;
+    $('statTotal').textContent = scoped.length;
+    $('statProgress').textContent = scoped.filter(t => t.status === 'in_progress').length;
+    $('statDone').textContent = scoped.filter(t => t.status === 'done').length;
     $('statOverdue').textContent = overdue;
 }
 
@@ -613,6 +626,7 @@ function stopMic() { if (aiRecognition) { try { aiRecognition.stop(); } catch (_
 async function saveTask(e) {
     e.preventDefault();
     const id = $('taskId').value;
+    const existing = id ? tasks.find(x => x.id === id) : null;
     const data = {
         title: $('fTitle').value.trim(),
         brand: $('fBrand').value,
@@ -623,11 +637,12 @@ async function saveTask(e) {
         url: $('fUrl').value.trim() || null,
         details: $('fDetails').value.trim() || null,
         remarks: $('fRemarks').value.trim() || null,
-        subtasks: editingSubtasks
+        subtasks: editingSubtasks,
+        // Preserve scope on edit; otherwise inherit from the active scope.
+        scope: existing ? scopeOf(existing) : currentScope
     };
     if (!data.title) { toast('Task needs a title.', 'error'); return; }
 
-    const existing = id ? tasks.find(x => x.id === id) : null;
     data.completed_at = data.status === 'done'
         ? (existing && existing.completed_at ? existing.completed_at : new Date().toISOString())
         : null;
@@ -706,6 +721,87 @@ function setConn(online) {
 }
 
 // ==========================================================================
+// PERSONAL STUFF (private scope, password-gated)
+// ==========================================================================
+function isUnlocked() {
+    try { return sessionStorage.getItem(SESSION_UNLOCK_KEY) === '1'; } catch { return false; }
+}
+function markUnlocked() {
+    try { sessionStorage.setItem(SESSION_UNLOCK_KEY, '1'); } catch (_) { }
+}
+function clearUnlocked() {
+    try { sessionStorage.removeItem(SESSION_UNLOCK_KEY); } catch (_) { }
+}
+
+function openPersonalAuth() {
+    // Already unlocked this session — skip the password prompt.
+    if (isUnlocked()) { enterPersonalMode(); return; }
+    $('personalAuthError').textContent = '';
+    $('personalAuthInput').value = '';
+    $('personalAuthModal').classList.add('active');
+    setTimeout(() => $('personalAuthInput').focus(), 100);
+}
+function closePersonalAuth() { $('personalAuthModal').classList.remove('active'); }
+
+async function submitPersonalAuth(e) {
+    if (e) e.preventDefault();
+    const pw = $('personalAuthInput').value;
+    const err = $('personalAuthError');
+    err.textContent = '';
+    if (!pw) { err.textContent = 'Enter your password.'; return; }
+    const btn = $('personalAuthSubmit');
+    btn.disabled = true; btn.textContent = 'Unlocking…';
+    try {
+        const res = await fetch('personal-auth.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+            markUnlocked();
+            closePersonalAuth();
+            enterPersonalMode();
+        } else if (res.status === 500 && data.error) {
+            err.textContent = data.error;
+        } else {
+            err.textContent = 'Wrong password.';
+            $('personalAuthInput').select();
+        }
+    } catch (_) {
+        err.textContent = 'Unlock failed — personal-auth.php is only available on the live site.';
+    } finally {
+        btn.disabled = false; btn.textContent = 'Unlock';
+    }
+}
+
+function enterPersonalMode() {
+    currentScope = 'personal';
+    document.body.classList.add('tm-personal-mode');
+    $('greetingText').textContent = 'Personal Stuff';
+    $('taglineText').textContent = 'Private tasks — never visible from the main task manager';
+    // Reset filters so we don't inherit work-mode state.
+    $('searchInput').value = '';
+    $('filterBrand').value = '';
+    $('filterType').value = '';
+    $('filterPriority').value = '';
+    render();
+    toast('Personal mode unlocked.', 'success');
+}
+
+function exitPersonalMode() {
+    currentScope = 'work';
+    document.body.classList.remove('tm-personal-mode');
+    $('greetingText').textContent = 'Task Manager';
+    $('taglineText').textContent = 'Track website changes, maintenance & technical SEO across your brands';
+    $('searchInput').value = '';
+    $('filterBrand').value = '';
+    $('filterType').value = '';
+    $('filterPriority').value = '';
+    render();
+}
+
+// ==========================================================================
 // INIT
 // ==========================================================================
 function bindEvents() {
@@ -746,7 +842,15 @@ function bindEvents() {
     $('importBtn').addEventListener('click', () => $('importFile').click());
     $('importFile').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeView(); closeAI(); } });
+    // Personal Stuff (private scope) wiring.
+    $('personalOrbBtn').addEventListener('click', openPersonalAuth);
+    $('personalAuthClose').addEventListener('click', closePersonalAuth);
+    $('personalAuthCancel').addEventListener('click', closePersonalAuth);
+    $('personalAuthModal').addEventListener('click', e => { if (e.target === $('personalAuthModal')) closePersonalAuth(); });
+    $('personalAuthForm').addEventListener('submit', submitPersonalAuth);
+    $('personalExitBtn').addEventListener('click', exitPersonalMode);
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeView(); closeAI(); closePersonalAuth(); } });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

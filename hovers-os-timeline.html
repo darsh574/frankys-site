@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hovers OS — Build Timeline</title>
+    <meta name="description" content="Interactive build timeline and calendar for the Hovers OS sections.">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Stylesheets (root-absolute: page is served at /task-manager/hovers-os-timeline) -->
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/hovers-os-timeline.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/src/favicon.svg">
+</head>
+
+<body>
+
+    <!-- ===== Nav (same component as home) ===== -->
+    <div class="nav-wrapper">
+        <nav>
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 10 L15 90 L55 90 C80 90 90 75 90 50 C90 25 80 10 55 10 Z" fill="none" stroke="white"
+                        stroke-width="10" stroke-linejoin="round" />
+                    <path d="M38 35 C38 35 62 35 62 48 C62 61 38 61 38 74 C38 74 62 74 62 74" fill="none" stroke="white"
+                        stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span class="logo-text">arshan</span>
+            </div>
+
+            <div class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span><span></span><span></span>
+            </div>
+
+            <ul class="nav-links" id="navLinks">
+                <div class="pill" id="pill"></div>
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="/claude-tips">Claude Tips</a></li>
+                <li><a href="/task-manager">Tasks</a></li>
+                <li><a href="/task-manager/hovers-os-timeline">HOS Timeline</a></li>
+            </ul>
+
+            <div class="nav-cta-group">
+                <button class="cta-btn" id="htTodayBtn">⌖ Today</button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ===== Background (same kinetic grid as home) ===== -->
+    <div id="canvas-container">
+        <canvas id="kinetic-grid"></canvas>
+    </div>
+    <div class="vignette"></div>
+
+    <main class="ht-page">
+
+        <!-- ===== Hero / overview ===== -->
+        <header class="ht-hero">
+            <div class="ht-hero-left">
+                <div class="ht-kicker">Build Roadmap</div>
+                <h1 class="ht-title">Hovers<span class="ht-dot">.</span> <span class="ht-title-thin">OS Timeline</span>
+                </h1>
+                <p class="ht-sub">One section every <strong>3 working days</strong> — Saturdays &amp; Sundays off.
+                    Testing runs in parallel and is not counted.</p>
+                <div class="ht-hero-chips" id="htHeroChips"></div>
+            </div>
+
+            <div class="ht-hero-right">
+                <div class="ht-progress-card">
+                    <svg class="ht-ring" viewBox="0 0 120 120">
+                        <circle class="ht-ring-bg" cx="60" cy="60" r="52" />
+                        <circle class="ht-ring-fill" id="htRingFill" cx="60" cy="60" r="52" />
+                    </svg>
+                    <div class="ht-ring-center">
+                        <div class="ht-ring-pct" id="htRingPct">0%</div>
+                        <div class="ht-ring-label">built</div>
+                    </div>
+                </div>
+                <div class="ht-stats" id="htStats"></div>
+            </div>
+        </header>
+
+        <!-- ===== Section legend / status rail ===== -->
+        <section class="ht-rail" id="htRail" aria-label="Sections"></section>
+
+        <!-- ===== View switch ===== -->
+        <div class="ht-viewbar">
+            <div class="ht-switch" id="htSwitch">
+                <span class="ht-switch-pill" id="htSwitchPill"></span>
+                <button class="ht-switch-btn is-active" data-view="calendar">Calendar</button>
+                <button class="ht-switch-btn" data-view="gantt">Timeline</button>
+            </div>
+            <div class="ht-cal-nav" id="htCalNav">
+                <button class="ht-nav-btn" id="htPrevMonth" aria-label="Previous month">‹</button>
+                <div class="ht-cal-month" id="htCalMonth"></div>
+                <button class="ht-nav-btn" id="htNextMonth" aria-label="Next month">›</button>
+            </div>
+        </div>
+
+        <!-- ===== Calendar view ===== -->
+        <section class="ht-cal-wrap" id="htCalWrap">
+            <div class="ht-cal-grid ht-cal-head">
+                <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div>
+                <div class="ht-wknd-head">Sat</div><div class="ht-wknd-head">Sun</div>
+            </div>
+            <div class="ht-cal-grid" id="htCalGrid"></div>
+        </section>
+
+        <!-- ===== Gantt / timeline view ===== -->
+        <section class="ht-gantt-wrap" id="htGanttWrap" hidden>
+            <div class="ht-gantt-scroll" id="htGanttScroll">
+                <div class="ht-gantt" id="htGantt"></div>
+            </div>
+            <div class="ht-gantt-hint">Scroll sideways · dashed gaps = weekends · click a bar for details</div>
+        </section>
+
+        <footer class="ht-foot" id="htFoot"></footer>
+    </main>
+
+    <!-- ===== Day / section inspector ===== -->
+    <div class="ht-modal-backdrop" id="htModalBackdrop" hidden>
+        <div class="ht-modal" id="htModal" role="dialog" aria-modal="true">
+            <button class="ht-modal-close" id="htModalClose" aria-label="Close">✕</button>
+            <div id="htModalBody"></div>
+        </div>
+    </div>
+
+    <div class="ht-tooltip" id="htTooltip" hidden></div>
+
+    <!-- Supabase (cloud sync for sections + comments) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Shared canvas grid + nav -->
+    <script src="/script.js"></script>
+    <script src="/hovers-os-timeline.js"></script>
+</body>
+
+</html>

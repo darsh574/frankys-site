@@ -47,6 +47,7 @@
                 <li><a href="index.html">Home</a></li>
                 <li><a href="claude-tips">Claude Tips</a></li>
                 <li><a href="task-manager.html" class="active-text">Tasks</a></li>
+                <li><a href="task-manager/hovers-os-timeline">HOS Timeline</a></li>
             </ul>
 
             <div class="nav-cta-group">
@@ -203,7 +204,36 @@
             <input type="file" id="importFile" accept="application/json" hidden>
 
             <span class="tm-conn" id="connBadge"><span class="dot"></span><span id="connText">Local</span></span>
+
+            <button class="tm-orb-btn" id="personalOrbBtn" type="button" title="Personal Stuff (private)">
+                <span class="tm-orb" aria-hidden="true">
+                    <span class="tm-orb-blob b1"></span>
+                    <span class="tm-orb-blob b2"></span>
+                    <span class="tm-orb-blob b3"></span>
+                    <span class="tm-orb-blob b4"></span>
+                    <span class="tm-orb-blob b5"></span>
+                    <span class="tm-orb-shine"></span>
+                </span>
+                <span class="tm-orb-label">Personal Stuff</span>
+            </button>
         </section>
+
+        <!-- Personal-mode banner (shown only when personal scope is active) -->
+        <div class="tm-personal-banner" id="personalBanner">
+            <span class="tm-orb tm-orb--mini" aria-hidden="true">
+                <span class="tm-orb-blob b1"></span>
+                <span class="tm-orb-blob b2"></span>
+                <span class="tm-orb-blob b3"></span>
+                <span class="tm-orb-blob b4"></span>
+                <span class="tm-orb-blob b5"></span>
+                <span class="tm-orb-shine"></span>
+            </span>
+            <div class="tm-personal-banner-text">
+                <strong>Personal Stuff</strong>
+                <span>Private — only you can see these tasks</span>
+            </div>
+            <button type="button" class="tm-btn tm-btn-ghost" id="personalExitBtn">Exit</button>
+        </div>
 
         <!-- Board view -->
         <section class="tm-board" id="boardView">
@@ -366,6 +396,38 @@
                 <input type="text" class="tm-ai-text" id="aiText" placeholder="Describe the task in your own words..." autocomplete="off">
                 <button type="button" class="tm-btn tm-btn-primary" id="aiSend">Send</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ===== Personal Stuff password gate ===== -->
+    <div class="tm-modal-overlay" id="personalAuthModal">
+        <div class="tm-modal tm-auth-modal">
+            <div class="tm-modal-head">
+                <h2>
+                    <span class="tm-orb tm-orb--mini" aria-hidden="true">
+                        <span class="tm-orb-blob b1"></span>
+                        <span class="tm-orb-blob b2"></span>
+                        <span class="tm-orb-blob b3"></span>
+                        <span class="tm-orb-blob b4"></span>
+                        <span class="tm-orb-blob b5"></span>
+                        <span class="tm-orb-shine"></span>
+                    </span>
+                    Personal Stuff
+                </h2>
+                <button class="tm-modal-close" id="personalAuthClose">&times;</button>
+            </div>
+            <p class="tm-auth-blurb">Enter your password to unlock private tasks. Personal items stay hidden from the main task manager.</p>
+            <form id="personalAuthForm" autocomplete="off">
+                <div class="tm-field">
+                    <label for="personalAuthInput">Password</label>
+                    <input type="password" class="tm-input" id="personalAuthInput" autocomplete="new-password" placeholder="••••••••" required>
+                    <div class="tm-auth-error" id="personalAuthError"></div>
+                </div>
+                <div class="tm-modal-foot">
+                    <button type="button" class="tm-btn tm-btn-ghost" id="personalAuthCancel">Cancel</button>
+                    <button type="submit" class="tm-btn tm-btn-primary" id="personalAuthSubmit">Unlock</button>
+                </div>
+            </form>
         </div>
     </div>
 
