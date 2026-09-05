@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quick order — QuikTea Wholesale</title>
+<link rel="icon" href="https://quiktea.com/wp-content/uploads/2024/05/quiktea.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div data-chrome-header></div>
+
+<main class="wrap">
+  <div style="padding:26px 0 18px">
+    <p class="crumbs"><a href="index.html">Home</a> / Quick order</p>
+    <h1 class="serif" style="font-size:34px">Quick order by SKU</h1>
+    <p class="muted" style="margin:8px 0 0">Type a SKU or product name, set the case count, add the whole sheet in one go.</p>
+  </div>
+
+  <div class="cart-layout" style="padding-top:0">
+    <div class="card" style="padding:20px">
+      <table class="tiers" style="font-size:14px">
+        <thead><tr><th style="width:46%">SKU or product</th><th style="width:22%">Cases</th><th>Line total</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn btn-ghost" id="addrow">+ Add row</button>
+        <button class="btn btn-primary" id="addall" style="margin-left:auto">Add all to cart</button>
+      </div>
+      <datalist id="skus"></datalist>
+    </div>
+
+    <aside class="card summary">
+      <h3>Sheet total</h3>
+      <div class="sum-row"><span>Valid lines</span><b id="q-lines">0</b></div>
+      <div class="sum-row"><span>Cases</span><b id="q-cases">0</b></div>
+      <div class="sum-row total"><span>Subtotal</span><span class="tnum" id="q-total">$0.00</span></div>
+      <p class="muted" style="font-size:12.5px;margin:12px 0 0">Tier discounts apply per SKU and are already reflected above.</p>
+      <a class="btn btn-ghost btn-block" href="cart.html" style="margin-top:14px">View cart</a>
+    </aside>
+  </div>
+</main>
+
+<div data-chrome-footer></div>
+
+<script src="products.js"></script>
+<script src="app.js"></script>
+<script>
+QT.chrome('quick-order.html');
+
+document.getElementById('skus').innerHTML = QT.products
+  .map(p => `<option value="${p.sku}">${QT.esc(p.name)}</option>`).join('');
+
+const rows = document.getElementById('rows');
+
+/* A row resolves on SKU first, then a loose name match. */
+function resolve(v) {
+  v = v.trim().toLowerCase();
+  if (!v) return null;
+  return QT.products.find(p => p.sku.toLowerCase() === v)
+      || QT.products.find(p => p.name.toLowerCase().includes(v))
+      || null;
+}
+
+function addRow() {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input class="sku" list="skus" placeholder="QT27L or 'masala 20'" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px">
+        <div class="muted hit" style="font-size:12px;margin-top:4px">&nbsp;</div></td>
+    <td><input class="n" type="number" min="1" value="1" style="width:80px;padding:9px 11px;border:1px solid var(--line);border-radius:8px"></td>
+    <td class="tnum amt">—</td>
+    <td style="text-align:right"><button class="link-danger del" type="button">Remove</button></td>`;
+  rows.appendChild(tr);
+  paint();
+}
+
+function paint() {
+  let lines = 0, cases = 0, total = 0;
+  rows.querySelectorAll('tr').forEach(tr => {
+    const p = resolve(tr.querySelector('.sku').value);
+    const n = Math.max(1, +tr.querySelector('.n').value || 1);
+    const hit = tr.querySelector('.hit'), amt = tr.querySelector('.amt');
+    if (p) {
+      const t = +(QT.casePrice(p, n) * n).toFixed(2);
+      hit.textContent = `${p.name} · ${p.casePack}×${p.units}ct · ${Math.round(QT.tierFor(n).off * 100)}% off`;
+      hit.style.color = 'var(--ok)';
+      amt.textContent = QT.money(t);
+      lines++; cases += n; total += t;
+    } else {
+      hit.textContent = tr.querySelector('.sku').value.trim() ? 'No match' : ' ';
+      hit.style.color = tr.querySelector('.sku').value.trim() ? 'var(--warn)' : '';
+      amt.textContent = '—';
+    }
+  });
+  document.getElementById('q-lines').textContent = lines;
+  document.getElementById('q-cases').textContent = cases;
+  document.getElementById('q-total').textContent = QT.money(total);
+}
+
+rows.addEventListener('input', paint);
+rows.addEventListener('click', e => {
+  if (e.target.classList.contains('del')) { e.target.closest('tr').remove(); paint(); }
+});
+document.getElementById('addrow').onclick = addRow;
+
+document.getElementById('addall').onclick = () => {
+  let added = 0;
+  rows.querySelectorAll('tr').forEach(tr => {
+    const p = resolve(tr.querySelector('.sku').value);
+    const n = Math.max(1, +tr.querySelector('.n').value || 1);
+    if (p) { QT.cart.add(p.id, n); added += n; }
+  });
+  if (!added) return QT.toast('Nothing to add — no rows matched a SKU');
+  QT.toast(`${added} case(s) added — cart now ${QT.cart.cases()} case(s)`);
+};
+
+[0, 1, 2, 3].forEach(addRow);
+</script>
+</body>
+</html>

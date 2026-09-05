@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product — QuikTea Wholesale</title>
+<link rel="icon" href="https://quiktea.com/wp-content/uploads/2024/05/quiktea.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div data-chrome-header></div>
+
+<main class="wrap">
+  <div class="pdp" id="pdp"></div>
+
+  <section class="section" style="padding-top:0">
+    <div class="section-head"><h2 class="serif" style="font-size:26px">More from this range</h2></div>
+    <div class="grid" id="related"></div>
+  </section>
+</main>
+
+<div data-chrome-footer></div>
+
+<script src="products.js"></script>
+<script src="app.js"></script>
+<script>
+QT.chrome('products.html');
+
+const p = QT.byId(QT.qs('id')) || QT.products[0];
+document.title = p.name + ' — QuikTea Wholesale';
+
+document.getElementById('pdp').innerHTML = `
+  <div class="pdp-media"><img src="${p.img}" alt="${QT.esc(p.name)}"></div>
+  <div>
+    <p class="crumbs"><a href="index.html">Home</a> / <a href="products.html">Catalogue</a> /
+      <a href="products.html?cat=${encodeURIComponent(p.cat)}">${p.cat}</a></p>
+    <h1>${QT.esc(p.name)}</h1>
+    <p class="muted" style="margin:0">SKU ${p.sku} · ${p.cat} ·
+      <span class="tag green" style="margin-left:4px">${p.stock ? 'In stock' : 'Backorder'}</span></p>
+
+    <p style="margin:18px 0 0;color:var(--muted);max-width:56ch">${QT.esc(p.desc || 'Authentic QuikTea instant latte mix — just add hot water. Shelf stable, no refrigeration required.')}</p>
+
+    <div class="spec">
+      <div><span>Case pack</span><b>${p.casePack} × ${p.units} count</b></div>
+      <div><span>Units per case</span><b>${p.casePack * p.units} servings</b></div>
+      <div><span>MSRP per unit</span><b>${QT.money(p.retail)}</b></div>
+      <div><span>Minimum order</span><b>1 case</b></div>
+    </div>
+
+    <div class="buybox">
+      <div class="row" style="justify-content:space-between;margin-bottom:16px">
+        <div>
+          <span class="price-now tnum" id="now">—</span>
+          <span class="muted"> / case</span>
+          <div class="muted" style="font-size:13.5px;margin-top:4px">
+            <s id="msrp"></s> MSRP · <span id="unit"></span> per unit
+          </div>
+        </div>
+        <span class="tag amber" id="tierbadge"></span>
+      </div>
+
+      <div class="row">
+        <div class="qty">
+          <button type="button" onclick="bump(-1)" aria-label="Fewer cases">−</button>
+          <input id="cases" type="number" min="1" max="999" value="1" aria-label="Cases">
+          <button type="button" onclick="bump(1)" aria-label="More cases">+</button>
+        </div>
+        <span class="muted" style="font-size:13.5px">cases · <span id="units"></span> units</span>
+        <button class="btn btn-primary" style="margin-left:auto" onclick="addToCart()">Add to order</button>
+      </div>
+
+      <div class="savings" id="save" hidden></div>
+      <div class="row" style="justify-content:space-between;border-top:1px solid var(--line-soft);margin-top:16px;padding-top:14px">
+        <span class="muted" style="font-size:14px">Line total</span>
+        <b class="tnum" id="linetotal" style="font-size:20px"></b>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;padding:8px 4px">
+      <table class="tiers" id="tiers">
+        <thead><tr><th>Cases</th><th>Per unit</th><th>Per case</th></tr></thead><tbody></tbody>
+      </table>
+    </div>
+    <p class="muted" style="font-size:12.5px">Freight $85 flat, free over $1,000. Minimum order value $250.</p>
+  </div>`;
+
+const casesEl = document.getElementById('cases');
+
+function bump(d) {
+  casesEl.value = Math.max(1, (+casesEl.value || 1) + d);
+  paint();
+}
+function paint() {
+  const n = Math.max(1, +casesEl.value || 1);
+  const t = QT.tierFor(n), unit = QT.unitPrice(p, n), cs = QT.casePrice(p, n);
+  document.getElementById('now').textContent = QT.money(cs);
+  document.getElementById('msrp').textContent = QT.money(QT.caseMsrp(p));
+  document.getElementById('unit').textContent = QT.money(unit);
+  document.getElementById('units').textContent = n * p.casePack;
+  document.getElementById('tierbadge').textContent = Math.round(t.off * 100) + '% off MSRP';
+  document.getElementById('linetotal').textContent = QT.money(cs * n);
+
+  const saved = +(QT.caseMsrp(p) * n - cs * n).toFixed(2);
+  const save = document.getElementById('save');
+  save.hidden = false;
+  const next = QT.TIERS.find(x => x.min > n);
+  save.textContent = `You save ${QT.money(saved)} vs MSRP` +
+    (next ? ` — add ${next.min - n} more case${next.min - n > 1 ? 's' : ''} for ${Math.round(next.off * 100)}% off.` : ' — best tier reached.');
+
+  document.querySelectorAll('#tiers tbody tr').forEach(tr =>
+    tr.classList.toggle('on', +tr.dataset.min === t.min));
+}
+function addToCart() {
+  const n = Math.max(1, +casesEl.value || 1);
+  QT.cart.add(p.id, n);
+  QT.toast(`${n} case${n > 1 ? 's' : ''} added — cart now ${QT.cart.cases()} case(s)`);
+}
+
+document.querySelector('#tiers tbody').innerHTML = QT.TIERS.map(t => `
+  <tr data-min="${t.min}"><td>${t.label}</td>
+  <td class="tnum">${QT.money(+(p.retail * (1 - t.off)).toFixed(2))}</td>
+  <td class="tnum">${QT.money(+(p.retail * (1 - t.off) * p.casePack).toFixed(2))}</td></tr>`).join('');
+
+casesEl.addEventListener('input', paint);
+paint();
+
+document.getElementById('related').innerHTML = QT.products
+  .filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4).map(QT.card).join('');
+</script>
+</body>
+</html>

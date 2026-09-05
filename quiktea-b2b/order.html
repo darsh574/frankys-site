@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Order confirmed — QuikTea Wholesale</title>
+<link rel="icon" href="https://quiktea.com/wp-content/uploads/2024/05/quiktea.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div data-chrome-header></div>
+
+<main>
+  <div class="steps no-print">
+    <i><b>1</b> Cart</i><span class="sep"></span>
+    <i><b>2</b> Details &amp; payment</i><span class="sep"></span>
+    <i class="on"><b>3</b> Confirmation</i>
+  </div>
+
+  <div class="receipt" id="receipt"></div>
+</main>
+
+<div data-chrome-footer></div>
+
+<script src="products.js"></script>
+<script src="app.js"></script>
+<script>
+QT.chrome('');
+
+let o = null;
+try { o = JSON.parse(localStorage.getItem('qt_b2b_order')); } catch (e) { }
+
+const box = document.getElementById('receipt');
+
+if (!o) {
+  box.innerHTML = `<div class="empty"><h2 class="serif">No recent order</h2>
+    <p class="muted">Place an order and the confirmation will appear here.</p>
+    <a class="btn btn-primary btn-lg" href="products.html" style="margin-top:16px">Browse catalogue</a></div>`;
+} else {
+  const placed = new Date(o.placed);
+  const eta = new Date(placed.getTime() + 5 * 864e5);
+  const fmt = d => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+  box.innerHTML = `
+    <div class="receipt-head">
+      <div class="tick">✓</div>
+      <h1 class="serif">Order ${o.ref} confirmed</h1>
+      <p class="muted">${o.method === 'terms'
+        ? 'Placed on Net 30 terms — the invoice is issued on dispatch.'
+        : 'Payment approved. A receipt has been emailed to ' + QT.esc(o.email) + '.'}</p>
+      <div class="hero-cta no-print" style="justify-content:center;margin-top:18px">
+        <button class="btn btn-ghost" onclick="print()">Print / save PDF</button>
+        <a class="btn btn-primary" href="products.html">Start another order</a>
+      </div>
+    </div>
+
+    <div class="kv" style="margin-bottom:22px">
+      <div><span>Order reference</span><b>${o.ref}</b></div>
+      <div><span>Placed</span><b>${fmt(placed)}</b></div>
+      <div><span>Payment</span><b>${QT.esc(o.methodLabel)}</b></div>
+      <div><span>PO number</span><b>${QT.esc(o.po)}</b></div>
+      <div><span>Delivery window</span><b>${QT.esc(o.window)}</b></div>
+      <div><span>Estimated arrival</span><b>${fmt(eta)}</b></div>
+    </div>
+
+    <div class="card" style="padding:22px;margin-bottom:22px">
+      <h3 style="font-size:16px;margin-bottom:14px">Ship to</h3>
+      <p style="margin:0;white-space:pre-line;line-height:1.6"><b>${QT.esc(o.company)}</b>
+${QT.esc(o.address)}
+Attn: ${QT.esc(o.buyer)} · ${QT.esc(o.email)}</p>
+      ${o.notes ? `<p class="muted" style="margin:12px 0 0;font-size:13.5px">Notes: ${QT.esc(o.notes)}</p>` : ''}
+    </div>
+
+    <div class="card">
+      ${o.lines.map(l => `
+        <div class="line">
+          <img src="${l.img}" alt="">
+          <div>
+            <h4>${QT.esc(l.name)}</h4>
+            <div class="sub">SKU ${l.sku} · ${l.cases} case${l.cases > 1 ? 's' : ''} · ${l.units} units · ${QT.money(l.each)}/case</div>
+          </div>
+          <div class="right"><span class="amt tnum">${QT.money(l.total)}</span></div>
+        </div>`).join('')}
+      <div style="padding:20px;border-top:1px solid var(--line)">
+        <div class="sum-row"><span>Subtotal (${o.totals.cases} cases · ${o.totals.units} units)</span><b class="tnum">${QT.money(o.totals.subtotal)}</b></div>
+        <div class="sum-row"><span>Freight</span><span class="tnum">${o.totals.freight ? QT.money(o.totals.freight) : 'FREE'}</span></div>
+        <div class="sum-row"><span>Sales tax (resale exempt)</span><span class="tnum">$0.00</span></div>
+        <div class="sum-row total"><span>${o.method === 'terms' ? 'Invoice total' : 'Paid'}</span><span class="tnum">${QT.money(o.totals.total)}</span></div>
+        <div class="savings">Volume tiers saved ${QT.money(o.totals.savings)} against MSRP</div>
+      </div>
+    </div>
+
+    <p class="muted" style="text-align:center;font-size:12.5px;margin-top:22px">
+      Questions about this order? Call the trade desk on 732-452-1300 quoting ${o.ref}.</p>`;
+}
+</script>
+</body>
+</html>

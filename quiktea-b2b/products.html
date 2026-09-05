@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catalogue — QuikTea Wholesale</title>
+<link rel="icon" href="https://quiktea.com/wp-content/uploads/2024/05/quiktea.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div data-chrome-header></div>
+
+<main class="wrap">
+  <div style="padding:26px 0 6px">
+    <p class="crumbs"><a href="index.html">Home</a> / Catalogue</p>
+    <h1 class="serif" style="font-size:34px">Wholesale catalogue</h1>
+    <p class="muted" style="margin:8px 0 0">All prices are per case and already net of your tier discount.</p>
+  </div>
+
+  <div class="catalog">
+    <aside class="filters">
+      <div>
+        <h4>Category</h4>
+        <div id="f-cats"></div>
+      </div>
+      <div>
+        <h4>Case size</h4>
+        <label><input type="radio" name="pack" value="" checked> Any</label>
+        <label><input type="radio" name="pack" value="24"> 24 units / case</label>
+        <label><input type="radio" name="pack" value="12"> 12 units / case</label>
+        <label><input type="radio" name="pack" value="6"> 6 units / case</label>
+        <label><input type="radio" name="pack" value="4"> 4 units / case</label>
+      </div>
+      <div>
+        <h4>Case price</h4>
+        <label><input type="radio" name="price" value="" checked> Any</label>
+        <label><input type="radio" name="price" value="0-100"> Under $100</label>
+        <label><input type="radio" name="price" value="100-250"> $100 – $250</label>
+        <label><input type="radio" name="price" value="250-9999"> $250 +</label>
+      </div>
+      <button class="btn btn-ghost" id="reset">Reset filters</button>
+    </aside>
+
+    <section>
+      <div class="toolbar">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Search products or SKU…" autocomplete="off">
+        </div>
+        <select class="sel" id="sort">
+          <option value="featured">Sort: Featured</option>
+          <option value="price-asc">Case price: low to high</option>
+          <option value="price-desc">Case price: high to low</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </div>
+      <p class="muted" id="count" style="margin:0 0 16px;font-size:13.5px"></p>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="none" hidden><h2>No products match</h2><p class="muted">Try clearing a filter or searching a different term.</p></div>
+    </section>
+  </div>
+</main>
+
+<div data-chrome-footer></div>
+
+<script src="products.js"></script>
+<script src="app.js"></script>
+<script>
+QT.chrome('products.html');
+
+const counts = {};
+QT.products.forEach(p => (counts[p.cat] = (counts[p.cat] || 0) + 1));
+const preset = QT.qs('cat');
+
+document.getElementById('f-cats').innerHTML = Object.keys(counts).sort().map(c =>
+  `<label><input type="checkbox" name="cat" value="${QT.esc(c)}"${c === preset ? ' checked' : ''}> ${c}
+   <span class="n">${counts[c]}</span></label>`).join('');
+
+const $ = s => document.querySelector(s);
+const grid = $('#grid'), none = $('#none'), countEl = $('#count');
+
+function render() {
+  const q = $('#q').value.trim().toLowerCase();
+  const cats = [...document.querySelectorAll('input[name=cat]:checked')].map(i => i.value);
+  const pack = document.querySelector('input[name=pack]:checked').value;
+  const [lo, hi] = (document.querySelector('input[name=price]:checked').value || '0-999999').split('-').map(Number);
+
+  let list = QT.products.filter(p => {
+    if (cats.length && !cats.includes(p.cat)) return false;
+    if (pack && p.casePack !== +pack) return false;
+    const cp = QT.casePrice(p, 1);
+    if (cp < lo || cp > hi) return false;
+    if (q && !(p.name + ' ' + p.sku + ' ' + p.cat).toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const sort = $('#sort').value;
+  if (sort === 'price-asc') list.sort((a, b) => QT.casePrice(a, 1) - QT.casePrice(b, 1));
+  if (sort === 'price-desc') list.sort((a, b) => QT.casePrice(b, 1) - QT.casePrice(a, 1));
+  if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name));
+
+  grid.innerHTML = list.map(QT.card).join('');
+  none.hidden = list.length > 0;
+  countEl.textContent = `${list.length} of ${QT.products.length} SKUs`;
+}
+
+document.addEventListener('input', e => { if (e.target.closest('.filters, .toolbar')) render(); });
+$('#reset').onclick = () => {
+  document.querySelectorAll('input[name=cat]').forEach(i => i.checked = false);
+  document.querySelector('input[name=pack][value=""]').checked = true;
+  document.querySelector('input[name=price][value=""]').checked = true;
+  $('#q').value = ''; $('#sort').value = 'featured';
+  render();
+};
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Order cart — QuikTea Wholesale</title>
+<link rel="icon" href="https://quiktea.com/wp-content/uploads/2024/05/quiktea.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div data-chrome-header></div>
+
+<main class="wrap">
+  <div style="padding:26px 0 0">
+    <p class="crumbs"><a href="index.html">Home</a> / Cart</p>
+    <h1 class="serif" style="font-size:34px">Your order</h1>
+  </div>
+
+  <div class="cart-layout" id="layout">
+    <div>
+      <div class="card" id="lines"></div>
+      <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap">
+        <a class="btn btn-ghost" href="products.html">← Continue shopping</a>
+        <button class="btn btn-ghost" id="clear">Empty cart</button>
+      </div>
+    </div>
+
+    <aside class="card summary">
+      <h3>Order summary</h3>
+      <div class="sum-row"><span>Cases</span><b class="tnum" id="s-cases">0</b></div>
+      <div class="sum-row"><span>Units</span><b class="tnum" id="s-units">0</b></div>
+      <div class="sum-row"><span>MSRP value</span><s class="tnum muted" id="s-msrp">$0.00</s></div>
+      <div class="sum-row"><span>Wholesale subtotal</span><b class="tnum" id="s-sub">$0.00</b></div>
+      <div class="savings" id="s-save"></div>
+      <div class="sum-row"><span>Freight</span><span class="tnum" id="s-freight">$0.00</span></div>
+      <div class="sum-row"><span>Sales tax <small class="muted">(resale exempt)</small></span><span class="tnum">$0.00</span></div>
+      <div class="sum-row total"><span>Total due</span><span class="tnum" id="s-total">$0.00</span></div>
+      <div class="note" id="s-min" hidden></div>
+      <a class="btn btn-primary btn-block btn-lg" id="go" href="checkout.html" style="margin-top:14px">Proceed to checkout</a>
+      <p class="muted" style="font-size:12.5px;text-align:center;margin:12px 0 0">
+        Net 30 available at checkout on approved accounts.</p>
+    </aside>
+  </div>
+
+  <div class="empty" id="empty" hidden>
+    <h2 class="serif">Your order is empty</h2>
+    <p class="muted">Add cases from the catalogue to start building a wholesale order.</p>
+    <a class="btn btn-primary btn-lg" href="products.html" style="margin-top:16px">Browse catalogue</a>
+  </div>
+</main>
+
+<div data-chrome-footer></div>
+
+<script src="products.js"></script>
+<script src="app.js"></script>
+<script>
+QT.chrome('cart.html');
+
+function render() {
+  const t = QT.cart.totals();
+  document.getElementById('layout').hidden = t.lines.length === 0;
+  document.getElementById('empty').hidden = t.lines.length > 0;
+  if (!t.lines.length) return;
+
+  document.getElementById('lines').innerHTML = t.lines.map(l => `
+    <div class="line">
+      <a href="product.html?id=${l.p.id}"><img src="${l.p.img}" alt=""></a>
+      <div>
+        <h4><a href="product.html?id=${l.p.id}">${QT.esc(l.p.name)}</a></h4>
+        <div class="sub">SKU ${l.p.sku} · ${l.p.casePack} × ${l.p.units} ct per case · ${l.units} units</div>
+        <div class="sub" style="margin-top:6px">
+          ${QT.money(l.unit)}/unit · <b>${QT.money(l.each)}/case</b>
+          <span class="tag amber" style="margin-left:6px">${Math.round(QT.tierFor(l.cases).off * 100)}% off</span>
+        </div>
+      </div>
+      <div class="right">
+        <div class="qty">
+          <button type="button" onclick="setQty(${l.p.id}, ${l.cases - 1})" aria-label="Fewer">−</button>
+          <input type="number" min="0" value="${l.cases}" aria-label="Cases"
+                 onchange="setQty(${l.p.id}, this.valueAsNumber)">
+          <button type="button" onclick="setQty(${l.p.id}, ${l.cases + 1})" aria-label="More">+</button>
+        </div>
+        <span class="amt tnum">${QT.money(l.total)}</span>
+        <button class="link-danger" onclick="setQty(${l.p.id}, 0)">Remove</button>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('s-cases').textContent = t.cases;
+  document.getElementById('s-units').textContent = t.units.toLocaleString('en-US');
+  document.getElementById('s-msrp').textContent = QT.money(t.msrp);
+  document.getElementById('s-sub').textContent = QT.money(t.subtotal);
+  document.getElementById('s-freight').textContent = t.freight ? QT.money(t.freight) : 'FREE';
+  document.getElementById('s-total').textContent = QT.money(t.total);
+
+  const save = document.getElementById('s-save');
+  save.textContent = `You save ${QT.money(t.savings)} (${Math.round(t.savings / t.msrp * 100)}%) against MSRP`;
+
+  const min = document.getElementById('s-min'), go = document.getElementById('go');
+  min.hidden = !t.belowMin;
+  if (t.belowMin) min.textContent = `Add ${QT.money(QT.MIN_ORDER - t.subtotal)} more to reach the $${QT.MIN_ORDER} minimum order value.`;
+  go.classList.toggle('btn-ghost', t.belowMin);
+  go.style.pointerEvents = t.belowMin ? 'none' : '';
+  go.style.opacity = t.belowMin ? .5 : 1;
+}
+
+function setQty(id, n) {
+  QT.cart.set(id, Math.max(0, n | 0));
+  render();
+}
+
+document.getElementById('clear').onclick = () => {
+  QT.cart.clear();
+  render();
+  QT.toast('Cart emptied');
+};
+
+render();
+</script>
+</body>
+</html>

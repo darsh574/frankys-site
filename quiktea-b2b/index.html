@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QuikTea Wholesale — B2B Ordering Portal</title>
+<link rel="icon" href="https://quiktea.com/wp-content/uploads/2024/05/quiktea.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div data-chrome-header></div>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow" style="color:#FFD9A8">QuikTea® Wholesale · Est. 2001</p>
+        <h1>Stock the chai<br>America <em>actually</em> drinks.</h1>
+        <p class="lede">Order full cases of QuikTea instant chai and coffee lattes at wholesale
+          pricing. Volume tiers up to 55&nbsp;% off MSRP, Net&nbsp;30 terms, and free freight
+          over $1,000.</p>
+        <div class="hero-cta">
+          <a class="btn btn-accent btn-lg" href="products.html">Browse catalogue</a>
+          <a class="btn btn-lg btn-ghost" href="quick-order.html">Quick order by SKU</a>
+        </div>
+        <div class="hero-stats">
+          <div><b id="stat-skus">—</b><span>Wholesale SKUs</span></div>
+          <div><b>55%</b><span>Max off MSRP</span></div>
+          <div><b>Net 30</b><span>Approved terms</span></div>
+          <div><b>48 hrs</b><span>Order to dispatch</span></div>
+        </div>
+      </div>
+      <div class="hero-art" id="hero-art"></div>
+    </div>
+  </section>
+
+  <section class="strip"><div class="wrap">
+    <div class="item"><b>Case-pack pricing</b><span>Every SKU priced per case, no retail markup.</span></div>
+    <div class="item"><b>Volume breaks</b><span>Discount deepens automatically at 5 and 20 cases.</span></div>
+    <div class="item"><b>Net 30 on approval</b><span>Or pay by card / ACH at checkout.</span></div>
+    <div class="item"><b>Resale tax exempt</b><span>ST-3 certificate held on file for your account.</span></div>
+  </div></section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Moving fastest this quarter</p>
+          <h2 class="serif">Best sellers</h2>
+        </div>
+        <a class="btn btn-ghost" href="products.html">View all products →</a>
+      </div>
+      <div class="grid" id="best"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head"><div>
+        <p class="eyebrow">Shop by range</p>
+        <h2 class="serif">Categories</h2>
+      </div></div>
+      <div class="grid" id="cats" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))"></div>
+    </div>
+  </section>
+
+  <section class="section" id="pricing" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+    <div class="wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center">
+      <div>
+        <p class="eyebrow">Transparent wholesale</p>
+        <h2 class="serif" style="font-size:34px;margin-bottom:14px">Volume pricing, applied per line</h2>
+        <p class="muted" style="max-width:46ch">Discounts are calculated live against MSRP as you build the
+          order — no negotiation, no price lists to chase. Add a fifth case of any SKU and that line
+          reprices instantly.</p>
+        <ul class="muted" style="padding-left:18px;margin:18px 0 24px;line-height:2">
+          <li>Minimum order value <b style="color:var(--ink)">$250</b></li>
+          <li>Flat freight <b style="color:var(--ink)">$85</b>, free over <b style="color:var(--ink)">$1,000</b></li>
+          <li>Mixed cases across SKUs count toward the order minimum</li>
+        </ul>
+        <a class="btn btn-primary" href="products.html">Start an order</a>
+      </div>
+      <div class="card" style="padding:8px 4px">
+        <table class="tiers" id="tier-table">
+          <thead><tr><th>Cases per SKU</th><th>Discount</th><th>Example — Masala Chai 20ct</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><div>
+        <p class="eyebrow">How it works</p>
+        <h2 class="serif">Four steps, no phone calls</h2>
+      </div></div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
+        <div class="card" style="padding:24px"><span class="tag">Step 1</span><h3 style="margin:12px 0 8px;font-size:18px">Build the order</h3><p class="muted" style="margin:0;font-size:14px">Add cases from the catalogue or paste SKUs into quick order.</p></div>
+        <div class="card" style="padding:24px"><span class="tag">Step 2</span><h3 style="margin:12px 0 8px;font-size:18px">Review pricing</h3><p class="muted" style="margin:0;font-size:14px">Tier discounts and freight are shown before you commit.</p></div>
+        <div class="card" style="padding:24px"><span class="tag">Step 3</span><h3 style="margin:12px 0 8px;font-size:18px">Pay or use terms</h3><p class="muted" style="margin:0;font-size:14px">Card, ACH bank debit, or Net 30 against your PO number.</p></div>
+        <div class="card" style="padding:24px"><span class="tag">Step 4</span><h3 style="margin:12px 0 8px;font-size:18px">Ships in 48 hrs</h3><p class="muted" style="margin:0;font-size:14px">Tracking and the commercial invoice land in your inbox.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="support" style="padding-top:0">
+    <div class="wrap">
+      <div class="card" style="padding:44px;display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center">
+        <div>
+          <p class="eyebrow">Wholesale support</p>
+          <h2 class="serif" style="font-size:30px;margin-bottom:12px">Talk to the trade desk</h2>
+          <p class="muted" style="margin:0 0 20px;max-width:48ch">New account, custom pallet quote, private label or
+            food-service dispensing — the wholesale team answers within one business day.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="mailto:info@quiktea.com">info@quiktea.com</a>
+            <a class="btn btn-ghost" href="tel:7324521300">732-452-1300</a>
+          </div>
+        </div>
+        <div class="kv">
+          <div><span>Trade desk</span><b>Mon–Fri, 9–6 ET</b></div>
+          <div><span>Warehouse</span><b>Plainsboro, NJ</b></div>
+          <div><span>Lead time</span><b>48 hours</b></div>
+          <div><span>Terms</span><b>Net 30 on approval</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div data-chrome-footer></div>
+
+<script src="products.js"></script>
+<script src="app.js"></script>
+<script>
+QT.chrome('index.html');
+
+document.getElementById('stat-skus').textContent = QT.products.length;
+
+/* Hero collage — three product shots from different ranges. */
+const pick = ['Chai Lattes','Vegan Lattes','Coffee Lattes']
+  .map(c => QT.products.find(p => p.cat === c))
+  .filter(Boolean);
+document.getElementById('hero-art').innerHTML =
+  pick.map(p => `<img src="${p.img}" alt="${QT.esc(p.name)}">`).join('');
+
+/* Best sellers: the eight highest case values, a decent proxy for a real sales feed.
+   ponytail: swap for real velocity data when the ERP exposes it. */
+document.getElementById('best').innerHTML = QT.products
+  .slice()
+  .sort((a,b) => QT.caseMsrp(b) - QT.caseMsrp(a))
+  .filter((p,i,arr) => arr.findIndex(x => x.cat === p.cat && x.units === p.units) === i)
+  .slice(0,8)
+  .map(QT.card).join('');
+
+/* Category tiles */
+const counts = {};
+QT.products.forEach(p => (counts[p.cat] = (counts[p.cat] || 0) + 1));
+document.getElementById('cats').innerHTML = Object.keys(counts).sort().map(c => {
+  const hero = QT.products.find(p => p.cat === c);
+  return `<a class="p-card" href="products.html?cat=${encodeURIComponent(c)}">
+    <div class="p-thumb"><img src="${hero.img}" alt="" loading="lazy"></div>
+    <div class="p-body" style="gap:4px">
+      <div class="p-name" style="min-height:0">${c}</div>
+      <span class="p-cat">${counts[c]} SKUs</span>
+    </div></a>`;
+}).join('');
+
+/* Tier table with a live worked example */
+const ex = QT.products.find(p => /masala chai/i.test(p.name) && p.units === 20) || QT.products[0];
+document.querySelector('#tier-table tbody').innerHTML = QT.TIERS.map(t => `
+  <tr><td>${t.label}</td><td>${Math.round(t.off*100)}% off</td>
+  <td class="tnum">${QT.money(+(ex.retail*(1-t.off)*ex.casePack).toFixed(2))} / case</td></tr>`).join('');
+</script>
+</body>
+</html>
