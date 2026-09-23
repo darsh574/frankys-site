@@ -142,7 +142,7 @@ async function refreshFromCloud() {
 }
 
 // Columns that may not exist yet in older Supabase tables.
-const OPTIONAL_COLS = ['completed_at', 'remarks', 'scope'];
+const OPTIONAL_COLS = ['completed_at', 'remarks', 'scope', 'assignee'];
 async function persistTask(task, isNew) {
     if (!sbClient) { lsSaveTasks(); return; }
     const run = payload => isNew
@@ -201,11 +201,13 @@ function dueInfo(due) {
 function getFiltered() {
     const q = $('searchInput').value.trim().toLowerCase();
     const fb = $('filterBrand').value, ft = $('filterType').value, fp = $('filterPriority').value;
+    const fa = $('filterAssignee')?.value; // only on the team-tasks page
     let list = tasks.filter(t => {
         if (!inScope(t)) return false;
         if (fb && t.brand !== fb) return false;
         if (ft && t.task_type !== ft) return false;
         if (fp && t.priority !== fp) return false;
+        if (fa && (fa === 'none' ? t.assignee : t.assignee !== fa)) return false;
         if (q) {
             const hay = `${t.title} ${t.brand} ${t.details || ''} ${t.url || ''}`.toLowerCase();
             if (!hay.includes(q)) return false;
@@ -249,6 +251,7 @@ function cardHTML(t) {
     const meta = [`<span class="tm-type-tag">${TYPE_LABELS[t.task_type] || 'Other'}</span>`];
     if (subs.length) meta.push(`<span class="tm-meta-chip">${doneSubs}/${subs.length}</span>`);
     if (di.label) meta.push(`<span class="tm-due ${di.cls}">${di.label}</span>`);
+    if (t.assignee && $('fAssignee')) meta.push(`<span class="tm-meta-chip">👤 ${esc(t.assignee)}</span>`);
     return `<div class="tm-card status-${t.status}" draggable="true" data-id="${t.id}" style="--brand-color:${brandColor(t.brand)};--prio-color:${PRIORITY_COLORS[t.priority]}">
         <div class="tm-card-main">
             <div class="tm-card-line1">
@@ -437,6 +440,7 @@ function openModal(id) {
         $('fUrl').value = t.url || '';
         $('fDetails').value = t.details || '';
         $('fRemarks').value = t.remarks || '';
+        if ($('fAssignee')) $('fAssignee').value = t.assignee || '';
         $('fAssigned').value = fmtDate(t.created_at || new Date().toISOString());
         editingSubtasks = (t.subtasks || []).map(s => ({ ...s }));
         $('deleteTaskBtn').style.display = '';
@@ -475,6 +479,7 @@ function openView(id) {
         viewRow('Priority', `<span style="text-transform:capitalize">${esc(t.priority)}</span>`),
         viewRow('Status', `<span class="tm-view-status status-${t.status}">${STATUS_LABELS[t.status] || esc(t.status)}</span>`),
         viewRow('Due date', di.label || 'No due date'),
+        ...($('fAssignee') ? [viewRow('Assignee', esc(t.assignee || 'Unassigned'))] : []),
         viewRow('Created', created)
     ];
     if (t.url) rows.push(viewRow('URL', `<a href="${esc(t.url)}" target="_blank" rel="noopener noreferrer" class="tm-view-link">${esc(t.url)}</a>`));
@@ -641,6 +646,7 @@ async function saveTask(e) {
         // Preserve scope on edit; otherwise inherit from the active scope.
         scope: existing ? scopeOf(existing) : currentScope
     };
+    if ($('fAssignee')) data.assignee = $('fAssignee').value || null;
     if (!data.title) { toast('Task needs a title.', 'error'); return; }
 
     data.completed_at = data.status === 'done'
@@ -785,6 +791,7 @@ function enterPersonalMode() {
     $('filterBrand').value = '';
     $('filterType').value = '';
     $('filterPriority').value = '';
+    if ($('filterAssignee')) $('filterAssignee').value = '';
     render();
     toast('Personal mode unlocked.', 'success');
 }
@@ -792,12 +799,13 @@ function enterPersonalMode() {
 function exitPersonalMode() {
     currentScope = 'work';
     document.body.classList.remove('tm-personal-mode');
-    $('greetingText').textContent = 'Task Manager';
-    $('taglineText').textContent = 'Track website changes, maintenance & technical SEO across your brands';
+    $('greetingText').textContent = $('greetingText').dataset.title || 'Task Manager';
+    $('taglineText').textContent = $('taglineText').dataset.title || 'Track website changes, maintenance & technical SEO across your brands';
     $('searchInput').value = '';
     $('filterBrand').value = '';
     $('filterType').value = '';
     $('filterPriority').value = '';
+    if ($('filterAssignee')) $('filterAssignee').value = '';
     render();
 }
 
@@ -832,8 +840,8 @@ function bindEvents() {
     due.addEventListener('click', openPicker);
     due.addEventListener('keydown', e => e.preventDefault());
 
-    ['searchInput', 'filterBrand', 'filterType', 'filterPriority', 'sortBy'].forEach(idv =>
-        $(idv).addEventListener('input', render));
+    ['searchInput', 'filterBrand', 'filterType', 'filterPriority', 'filterAssignee', 'sortBy'].forEach(idv =>
+        $(idv)?.addEventListener('input', render));
 
     $('viewBoard').addEventListener('click', () => { currentView = 'board'; $('viewBoard').classList.add('active'); $('viewList').classList.remove('active'); render(); });
     $('viewList').addEventListener('click', () => { currentView = 'list'; $('viewList').classList.add('active'); $('viewBoard').classList.remove('active'); render(); });

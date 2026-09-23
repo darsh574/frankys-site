@@ -12,6 +12,10 @@ framework, no bundler. Pages are served directly.
   background, glassmorphic platform cards, client manager, voice search.
 - `task-manager.html` / `task-manager.css` / `task-manager.js` — the Task
   Manager app (see below). Lives at `/task-manager`.
+- `team-tasks.html` — same Task Manager (same JS/CSS/Supabase data) plus an
+  **Assignee** field (Darshan / Sanskriti / Saptak) and assignee filter. The
+  shared `task-manager.js` enables assignee UI only when `#fAssignee` exists.
+  Needs: `alter table tasks add column if not exists assignee text;`
 - `claude-tips.html`, `porto.html` — other standalone pages.
 - `hovers-os-timeline.html` / `.css` / `.js` — Hovers OS build-roadmap
   dashboard (calendar + Gantt views). Served at

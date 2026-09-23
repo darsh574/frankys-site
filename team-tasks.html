@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager — Darshan's Workspace</title>
+    <title>Team Tasks — Darshan's Workspace</title>
     <meta name="description" content="Personal task manager for website changes, maintenance and technical SEO across brands.">
     <meta name="robots" content="noindex, nofollow">
 
@@ -46,8 +46,8 @@
                 <div class="pill" id="pill"></div>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="claude-tips">Claude Tips</a></li>
-                <li><a href="task-manager.html" class="active-text">Tasks</a></li>
-                <li><a href="team-tasks">Team Tasks</a></li>
+                <li><a href="task-manager.html">Tasks</a></li>
+                <li><a href="team-tasks" class="active-text">Team Tasks</a></li>
                 <li><a href="task-manager/hovers-os-timeline">HOS Timeline</a></li>
             </ul>
 
@@ -120,8 +120,8 @@
     <!-- ===== Main ===== -->
     <main class="tm-main">
         <header class="tm-header">
-            <h1 class="tm-title" id="greetingText">Task Manager</h1>
-            <p class="tm-tagline" id="taglineText">Track website changes, maintenance & technical SEO across your brands</p>
+            <h1 class="tm-title" id="greetingText" data-title="Team Tasks">Team Tasks</h1>
+            <p class="tm-tagline" id="taglineText" data-title="Same tasks, assigned across the team">Same tasks, assigned across the team</p>
         </header>
 
         <!-- Stats dashboard -->
@@ -171,6 +171,13 @@
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
                 <option value="low">Low</option>
+            </select>
+            <select class="tm-select" id="filterAssignee">
+                <option value="">All Assignees</option>
+                <option value="Darshan">Darshan</option>
+                <option value="Sanskriti">Sanskriti</option>
+                <option value="Saptak">Saptak</option>
+                <option value="none">Unassigned</option>
             </select>
             <select class="tm-select" id="sortBy">
                 <option value="created">Sort: Newest</option>
@@ -330,9 +337,20 @@
                     </div>
                 </div>
 
-                <div class="tm-field">
-                    <label for="fAssigned">Assigned date (auto)</label>
-                    <input type="text" class="tm-input" id="fAssigned" disabled>
+                <div class="tm-field-row">
+                    <div class="tm-field">
+                        <label for="fAssignee">Assignee</label>
+                        <select id="fAssignee">
+                            <option value="">Unassigned</option>
+                            <option value="Darshan">Darshan</option>
+                            <option value="Sanskriti">Sanskriti</option>
+                            <option value="Saptak">Saptak</option>
+                        </select>
+                    </div>
+                    <div class="tm-field">
+                        <label for="fAssigned">Assigned date (auto)</label>
+                        <input type="text" class="tm-input" id="fAssigned" disabled>
+                    </div>
                 </div>
 
                 <div class="tm-field">
