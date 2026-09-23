@@ -1147,3 +1147,41 @@ body.tm-personal-mode .tm-orb-btn { display: none; }
 @media (max-width: 560px) {
     .tm-personal-banner { flex-wrap: wrap; }
 }
+
+/* Team Tasks: prominent assignee pill */
+.tm-assignee {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    padding: 3px 10px 3px 3px;
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--who) 28%, transparent);
+    border: 1px solid var(--who);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--who) 45%, transparent);
+    white-space: nowrap;
+}
+.tm-assignee-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    background: var(--who);
+}
+.tm-assignee.unassigned {
+    padding: 3px 10px;
+    color: rgba(255, 255, 255, 0.55);
+    background: transparent;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    box-shadow: none;
+    font-weight: 500;
+}
+@media (max-width: 560px) {
+    /* Phones: collapse the pill to just the colored initial */
+    .tm-assignee:not(.unassigned) { font-size: 0; padding: 2px; gap: 0; }
+    .tm-assignee:not(.unassigned) .tm-assignee-dot { font-size: 11px; }
+}

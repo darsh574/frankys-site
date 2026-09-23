@@ -19,6 +19,13 @@ const TYPE_LABELS = {
     other: 'Other'
 };
 
+// Team Tasks page: one color per assignee.
+const ASSIGNEE_COLORS = { Darshan: '#3b82f6', Sanskriti: '#ec4899', Saptak: '#f59e0b' };
+function assigneeHTML(name) {
+    if (!name) return `<span class="tm-assignee unassigned" title="Not assigned yet">Unassigned</span>`;
+    return `<span class="tm-assignee" style="--who:${ASSIGNEE_COLORS[name] || '#64748b'}" title="Assigned to ${esc(name)}"><span class="tm-assignee-dot">${esc(name[0])}</span>${esc(name)}</span>`;
+}
+
 const PRIORITY_COLORS = {
     low: '#64748b', medium: '#3b82f6', high: '#f59e0b', urgent: '#ef4444'
 };
@@ -251,7 +258,6 @@ function cardHTML(t) {
     const meta = [`<span class="tm-type-tag">${TYPE_LABELS[t.task_type] || 'Other'}</span>`];
     if (subs.length) meta.push(`<span class="tm-meta-chip">${doneSubs}/${subs.length}</span>`);
     if (di.label) meta.push(`<span class="tm-due ${di.cls}">${di.label}</span>`);
-    if (t.assignee && $('fAssignee')) meta.push(`<span class="tm-meta-chip">👤 ${esc(t.assignee)}</span>`);
     return `<div class="tm-card status-${t.status}" draggable="true" data-id="${t.id}" style="--brand-color:${brandColor(t.brand)};--prio-color:${PRIORITY_COLORS[t.priority]}">
         <div class="tm-card-main">
             <div class="tm-card-line1">
@@ -264,6 +270,7 @@ function cardHTML(t) {
             </div>
         </div>
         <div class="tm-card-right">
+            ${$('fAssignee') ? assigneeHTML(t.assignee) : ''}
             <select class="tm-status-select status-${t.status}" data-id="${t.id}" title="Change status">
                 <option value="todo" ${t.status === 'todo' ? 'selected' : ''}>To Do</option>
                 <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
@@ -479,7 +486,7 @@ function openView(id) {
         viewRow('Priority', `<span style="text-transform:capitalize">${esc(t.priority)}</span>`),
         viewRow('Status', `<span class="tm-view-status status-${t.status}">${STATUS_LABELS[t.status] || esc(t.status)}</span>`),
         viewRow('Due date', di.label || 'No due date'),
-        ...($('fAssignee') ? [viewRow('Assignee', esc(t.assignee || 'Unassigned'))] : []),
+        ...($('fAssignee') ? [viewRow('Assignee', assigneeHTML(t.assignee))] : []),
         viewRow('Created', created)
     ];
     if (t.url) rows.push(viewRow('URL', `<a href="${esc(t.url)}" target="_blank" rel="noopener noreferrer" class="tm-view-link">${esc(t.url)}</a>`));
