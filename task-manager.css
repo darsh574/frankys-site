@@ -1180,6 +1180,39 @@ body.tm-personal-mode .tm-orb-btn { display: none; }
     box-shadow: none;
     font-weight: 500;
 }
+.tm-assignee[data-who] { cursor: pointer; }
+
+.tm-assignee-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -8px 0 20px;
+}
+.tm-assignee-bar:empty { display: none; }
+.tm-assignee-btn {
+    font: 600 12.5px 'Inter', sans-serif;
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(20, 20, 20, 0.6);
+    border: 1px solid color-mix(in srgb, var(--who) 50%, transparent);
+    border-radius: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+.tm-assignee-btn b {
+    margin-left: 4px;
+    font-weight: 700;
+    color: var(--who);
+}
+.tm-assignee-btn:hover { background: color-mix(in srgb, var(--who) 15%, transparent); }
+.tm-assignee-btn.active {
+    color: #fff;
+    background: color-mix(in srgb, var(--who) 35%, transparent);
+    border-color: var(--who);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--who) 50%, transparent);
+}
+.tm-assignee-btn.active b { color: #fff; }
+
 @media (max-width: 560px) {
     /* Phones: collapse the pill to just the colored initial */
     .tm-assignee:not(.unassigned) { font-size: 0; padding: 2px; gap: 0; }

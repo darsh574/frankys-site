@@ -23,7 +23,7 @@ const TYPE_LABELS = {
 const ASSIGNEE_COLORS = { Darshan: '#3b82f6', Sanskriti: '#ec4899', Saptak: '#f59e0b' };
 function assigneeHTML(name) {
     if (!name) return `<span class="tm-assignee unassigned" title="Not assigned yet">Unassigned</span>`;
-    return `<span class="tm-assignee" style="--who:${ASSIGNEE_COLORS[name] || '#64748b'}" title="Assigned to ${esc(name)}"><span class="tm-assignee-dot">${esc(name[0])}</span>${esc(name)}</span>`;
+    return `<span class="tm-assignee" data-who="${esc(name)}" style="--who:${ASSIGNEE_COLORS[name] || '#64748b'}" title="Assigned to ${esc(name)}"><span class="tm-assignee-dot">${esc(name[0])}</span>${esc(name)}</span>`;
 }
 
 const PRIORITY_COLORS = {
@@ -235,8 +235,28 @@ function getFiltered() {
 // ==========================================================================
 // RENDER
 // ==========================================================================
+// Team Tasks page: clickable name buttons that drive the #filterAssignee select.
+function renderAssigneeBar() {
+    const bar = $('assigneeBar');
+    if (!bar) return;
+    const scoped = tasks.filter(inScope);
+    const cur = $('filterAssignee').value;
+    const btn = (val, label, color, n) =>
+        `<button type="button" class="tm-assignee-btn ${cur === val ? 'active' : ''}" data-who="${val}" style="--who:${color}">${label} <b>${n}</b></button>`;
+    bar.innerHTML = btn('', 'All', '#94a3b8', scoped.length)
+        + Object.entries(ASSIGNEE_COLORS).map(([n, c]) => btn(n, n, c, scoped.filter(t => t.assignee === n).length)).join('')
+        + btn('none', 'Unassigned', '#64748b', scoped.filter(t => !t.assignee).length);
+}
+function filterByAssignee(who) {
+    const sel = $('filterAssignee');
+    // Clicking the active person again clears the filter.
+    sel.value = sel.value === who ? '' : who;
+    render();
+}
+
 function render() {
     renderStats();
+    renderAssigneeBar();
     renderBrandFilter();
     if (currentView === 'board') renderBoard(); else renderList();
 }
@@ -322,6 +342,7 @@ function bindCards() {
         card.querySelector('[data-act="edit"]')?.addEventListener('click', e => { e.stopPropagation(); openModal(id); });
         card.querySelector('[data-act="del"]')?.addEventListener('click', e => { e.stopPropagation(); removeTask(id); });
         card.querySelector('[data-act="view"]')?.addEventListener('click', e => { e.stopPropagation(); openView(id); });
+        card.querySelector('.tm-assignee[data-who]')?.addEventListener('click', e => { e.stopPropagation(); filterByAssignee(e.currentTarget.dataset.who); });
         const sel = card.querySelector('.tm-status-select');
         if (sel) {
             sel.addEventListener('click', e => e.stopPropagation());
@@ -847,6 +868,10 @@ function bindEvents() {
     due.addEventListener('click', openPicker);
     due.addEventListener('keydown', e => e.preventDefault());
 
+    $('assigneeBar')?.addEventListener('click', e => {
+        const b = e.target.closest('.tm-assignee-btn');
+        if (b) { $('filterAssignee').value = b.dataset.who; render(); }
+    });
     ['searchInput', 'filterBrand', 'filterType', 'filterPriority', 'filterAssignee', 'sortBy'].forEach(idv =>
         $(idv)?.addEventListener('input', render));
 
